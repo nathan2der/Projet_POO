@@ -1,12 +1,28 @@
+
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Plateau {
-    
-    public ArrayList<Case> plateau;
+    private ArrayList<Case> plateau;
 
     public Plateau() {
-        this.comptes = new ArrayList<>();
+        this.plateau = new ArrayList<>();
+    }
+
+    public void ajouterCase(Case c) {
+        plateau.add(c);
+    }
+
+    public Case getCase(int index) {
+        if (index >= 0 && index < plateau.size()) {
+            return plateau.get(index);
+        }
+        return null;
+    }
+
+    public void afficherPlateau() {
+        for (int i = 0; i < plateau.size(); i++) {
+            System.out.println("Case " + i + ": " + plateau.get(i));
+        }
     }
 }
+
