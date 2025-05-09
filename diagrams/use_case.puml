@@ -1,0 +1,32 @@
+@startuml WargameUseCaseDiagram
+
+actor "Joueur" as Joueur
+actor "Joueur Humain" as JH
+actor "IA" as IA
+
+JH --|> Joueur
+IA --|> Joueur
+
+rectangle "Wargame" {
+    usecase "Créer une partie" as UC1
+    usecase "Jouer une partie" as UC2
+    usecase "Sélectionner une unité" as UC3
+    usecase "Déplacer une unité" as UC4
+    usecase "Attaquer une unité" as UC5
+    usecase "Sauvegarder la partie" as UC6
+    usecase "Charger une partie" as UC7
+    usecase "Voir les infos d'une unité" as UC8
+    usecase "Terminer le tour" as UC9
+}
+
+Joueur --> UC1
+Joueur --> UC2
+UC2 --> UC3 : <<include>>
+UC2 --> UC4 : <<include>>
+UC2 --> UC5 : <<include>>
+UC2 --> UC6 : <<include>>
+UC2 --> UC7 : <<include>>
+UC2 --> UC8 : <<include>>
+UC2 --> UC9 : <<include>>
+@enduml
+

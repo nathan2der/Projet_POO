@@ -1,0 +1,125 @@
+@startuml WargameClassDiagram
+
+' Style settings
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' Enums
+enum TerrainType {
+    PLAIN
+    FOREST
+    MOUNTAIN
+    RIVER
+    ROAD
+    DESERT
+    SWAMP
+    +getMovementCost(): int
+    +getCombatModifier(): int
+}
+
+enum UnitType {
+    INFANTRY
+    CAVALRY
+    ARCHER
+    SIEGE
+    SCOUT
+    +getHealth(): int
+    +getMovement(): int
+    +getAttack(): int
+    +getRange(): int
+}
+
+' Core Classes
+class GameMap {
+    -tiles: HexTile[][]
+    -width: int
+    -height: int
+    +getWidth(): int
+    +getHeight(): int
+    +getTile(x: int, y: int): HexTile
+    +placeUnit(unit: Unit, x: int, y: int): boolean
+    +removeUnit(unit: Unit): void
+    +getAdjacentTiles(tile: HexTile): List<HexTile>
+    +getTilesInRange(center: HexTile, range: int): List<HexTile>
+}
+
+class HexTile {
+    -x: int
+    -y: int
+    -terrain: TerrainType
+    -unit: Unit
+    +getX(): int
+    +getY(): int
+    +getTerrain(): TerrainType
+    +getUnit(): Unit
+    +setUnit(unit: Unit): void
+    +isEmpty(): boolean
+    +distanceTo(other: HexTile): int
+}
+
+class Unit {
+    -type: UnitType
+    -owner: Player
+    -currentHealth: int
+    -remainingMovement: int
+    -currentTile: HexTile
+    -hasAttacked: boolean
+    +getType(): UnitType
+    +getOwner(): Player
+    +move(newTile: HexTile, cost: int): boolean
+    +attack(target: Unit): boolean
+    +resetTurn(): void
+}
+
+class Player {
+    -name: String
+    -units: List<Unit>
+    -gold: int
+    +getName(): String
+    +getGold(): int
+    +addUnit(unit: Unit): void
+    +removeUnit(unit: Unit): void
+    +createUnit(type: UnitType): Unit
+    +resetTurn(): void
+    +hasUnits(): boolean
+}
+
+class TurnManager {
+    -players: List<Player>
+    -turnOrder: Queue<Player>
+    -currentPlayer: Player
+    -turnNumber: int
+    -gameMap: GameMap
+    -selectedUnit: Unit
+    +getCurrentPlayer(): Player
+    +selectUnit(unit: Unit): boolean
+    +moveSelectedUnit(targetTile: HexTile): boolean
+    +attackWithSelectedUnit(targetUnit: Unit): boolean
+    +endTurn(): boolean
+    +getValidMoves(): List<HexTile>
+    +getValidTargets(): List<Unit>
+}
+
+class VictoryCondition {
+    -players: List<Player>
+    -turnLimit: int
+    -eliminationEnabled: boolean
+    -turnLimitEnabled: boolean
+    +isGameOver(currentTurn: int): boolean
+    +getWinner(currentTurn: int): Player
+    +getVictoryStatus(currentTurn: int): String
+}
+
+' Relationships
+GameMap "1" *-- "many" HexTile : contains
+HexTile "1" o-- "0..1" Unit : holds
+Unit "1" -- "1" UnitType : has
+Unit "1" -- "1" Player : belongs to
+Unit "1" -- "1" HexTile : occupies
+Player "1" *-- "many" Unit : owns
+TurnManager "1" -- "many" Player : manages
+TurnManager "1" -- "1" GameMap : uses
+VictoryCondition "1" -- "many" Player : checks
+HexTile "1" -- "1" TerrainType : has
+
+@enduml 
