@@ -10,8 +10,7 @@ import wargame.game.AssetManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -33,6 +32,16 @@ public class MapPanel extends JPanel {
     private static final Map<String, BufferedImage> unitImages = new HashMap<>();
     private static BufferedImage questionImage;
     private GameWindow parentWindow;
+    
+    // Panning variables
+    private int offsetX = 0;
+    private int offsetY = 0;
+    private Point lastMousePosition;
+    private boolean isPanning = false;
+    private static final int PAN_SPEED = 1;
+    private static final int ZOOM_SPEED = 1;
+    private double zoomFactor = 1.0;
+    private boolean isNavigating = false;
 
     static {
         // Preload all unit images
@@ -64,13 +73,80 @@ public class MapPanel extends JPanel {
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
 
-        // Add mouse listener for tile selection
-        addMouseListener(new MouseAdapter() {
+        // Add mouse listeners for tile selection and navigation
+        MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                handleTileClick(e.getX(), e.getY());
+            public void mousePressed(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    // Left click for navigation or tile selection
+                    /* Navigation code commented out
+                    lastMousePosition = e.getPoint();
+                    isNavigating = true;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                    */
+                    // Only handle tile selection
+                    handleTileClick(e.getX(), e.getY());
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    /* Navigation code commented out
+                    if (isNavigating && !isPanning) {
+                        // If we didn't pan, it was a click for tile selection
+                        handleTileClick(e.getX(), e.getY());
+                    }
+                    isNavigating = false;
+                    isPanning = false;
+                    setCursor(Cursor.getDefaultCursor());
+                    */
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                /* Navigation code commented out
+                if (isNavigating && lastMousePosition != null) {
+                    int dx = e.getX() - lastMousePosition.x;
+                    int dy = e.getY() - lastMousePosition.y;
+                    
+                    // Only start panning if we've moved more than a small threshold
+                    if (!isPanning && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+                        isPanning = true;
+                    }
+                    
+                    if (isPanning) {
+                        // Update offsets
+                        offsetX += dx * PAN_SPEED;
+                        offsetY += dy * PAN_SPEED;
+                        
+                        // Update last position
+                        lastMousePosition = e.getPoint();
+                        
+                        // Repaint the panel
+                        repaint();
+                    }
+                }
+                */
+            }
+        };
+
+        // Add mouse wheel listener for zooming
+        /* Zoom code commented out
+        addMouseWheelListener(e -> {
+            double oldZoom = zoomFactor;
+            zoomFactor += e.getWheelRotation() * 0.1 * ZOOM_SPEED;
+            zoomFactor = Math.max(0.5, Math.min(2.0, zoomFactor)); // Limit zoom range
+            
+            if (zoomFactor != oldZoom) {
+                repaint();
             }
         });
+        */
+
+        addMouseListener(mouseAdapter);
+        addMouseMotionListener(mouseAdapter);
     }
 
     @Override
@@ -80,8 +156,13 @@ public class MapPanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Calculate hex width and height to fill the panel
-        double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25);
-        double hexHeight = getHeight() / (map.getHeight() + 0.5);
+        double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
+        double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
+
+        /* Navigation offset code commented out
+        // Apply offsets
+        g2d.translate(offsetX, offsetY);
+        */
 
         // Draw each hex tile
         for (int x = 0; x < map.getWidth(); x++) {
@@ -90,6 +171,11 @@ public class MapPanel extends JPanel {
                 drawHexTile(g2d, tile, x, y, hexWidth, hexHeight);
             }
         }
+
+        /* Navigation offset reset code commented out
+        // Reset transform
+        g2d.translate(-offsetX, -offsetY);
+        */
     }
 
     private void drawHexTile(Graphics2D g2d, HexTile tile, int x, int y, double hexWidth, double hexHeight) {
@@ -120,7 +206,7 @@ public class MapPanel extends JPanel {
             g2d.setClip(hex);
             
             // Size the image to fit the hex while maintaining aspect ratio
-            double scale = 1.0; // Full size to fill the hex completely
+            double scale = 1.1; // Slightly larger scale to eliminate gaps
             int imgW = (int)(hexWidth * scale);
             int imgH = (int)(hexHeight * scale);
             g2d.drawImage(terrainImage, 
@@ -304,16 +390,27 @@ public class MapPanel extends JPanel {
     }
 
     private void handleTileClick(int mouseX, int mouseY) {
-        // Convert mouse coordinates to hex coordinates
-        double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25);
-        double hexHeight = getHeight() / (map.getHeight() + 0.5);
+        // Convert mouse coordinates to hex coordinates, accounting for offset and zoom
+        double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
+        double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
+        
+        /* Navigation offset adjustment code commented out
+        // Adjust mouse coordinates for offset and zoom
+        double adjustedX = (mouseX - offsetX) / zoomFactor;
+        double adjustedY = (mouseY - offsetY) / zoomFactor;
+        */
+        
+        // Use direct mouse coordinates since navigation is disabled
+        double adjustedX = mouseX / zoomFactor;
+        double adjustedY = mouseY / zoomFactor;
+        
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
                 HexTile tile = map.getTile(x, y);
                 double centerX = x * hexWidth * 0.75 + hexWidth / 2;
                 double centerY = y * hexHeight + (x % 2) * hexHeight / 2 + hexHeight / 2;
-                double dx = mouseX - centerX;
-                double dy = mouseY - centerY;
+                double dx = adjustedX - centerX;
+                double dy = adjustedY - centerY;
                 double dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist <= Math.min(hexWidth, hexHeight) / 2) {
                     selectedTile = tile;

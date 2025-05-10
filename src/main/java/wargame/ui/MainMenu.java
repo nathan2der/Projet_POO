@@ -201,6 +201,7 @@ public class MainMenu extends JFrame {
         Player player1 = new Player(player1Name);
         Player player2 = gameMode == 0 ? new Player(player2Name) : new AIPlayer(player2Name);
         
+        /* Previous version with fixed units
         // Create and place units for player 1
         Unit infantry1 = new Unit(UnitType.INFANTRY, player1);
         Unit archer1 = new Unit(UnitType.ARCHER, player1);
@@ -220,6 +221,11 @@ public class MainMenu extends JFrame {
         map.placeUnit(infantry2, 17, 7);
         map.placeUnit(heavyInfantry2, 18, 6);
         map.placeUnit(mage2, 19, 7);
+        */
+        
+        // Generate random armies for both players
+        generateRandomArmy(player1, map, true);  // true for left side
+        generateRandomArmy(player2, map, false); // false for right side
         
         // Generate random terrain
         TerrainType[] terrainTypes = TerrainType.values();
@@ -263,6 +269,58 @@ public class MainMenu extends JFrame {
         
         // Close main menu
         dispose();
+    }
+
+    private void generateRandomArmy(Player player, GameMap map, boolean isLeftSide) {
+        final int TOTAL_SPACE = 100;
+        int remainingSpace = TOTAL_SPACE;
+        int startX = isLeftSide ? 0 : 17;
+        int currentX = startX;
+        int currentY = 6;
+        
+        while (remainingSpace > 0) {
+            // Create a list of possible unit types that fit in remaining space
+            List<UnitType> possibleTypes = new ArrayList<>();
+            if (remainingSpace >= 7) possibleTypes.add(UnitType.HEAVY_INFANTRY);
+            if (remainingSpace >= 5) possibleTypes.add(UnitType.CAVALRY);
+            if (remainingSpace >= 2) {
+                possibleTypes.add(UnitType.INFANTRY);
+                possibleTypes.add(UnitType.MAGE);
+            }
+            if (remainingSpace >= 1) possibleTypes.add(UnitType.ARCHER);
+            
+            // If no units can fit, use the smallest unit (Archer)
+            if (possibleTypes.isEmpty()) {
+                possibleTypes.add(UnitType.ARCHER);
+            }
+            
+            // Randomly select a unit type
+            UnitType selectedType = possibleTypes.get((int)(Math.random() * possibleTypes.size()));
+            
+            // Create and place the unit
+            Unit unit = new Unit(selectedType, player);
+            map.placeUnit(unit, currentX, currentY);
+            
+            // Update remaining space
+            remainingSpace -= selectedType.getSpaceCost();
+            
+            // Update position for next unit
+            currentX++;
+            if (currentX > (isLeftSide ? 2 : 19)) {
+                currentX = startX;
+                currentY++;
+            }
+        }
+        
+        // Debug output
+        System.out.println(player.getName() + "'s army composition:");
+        for (UnitType type : UnitType.values()) {
+            long count = player.getUnits().stream()
+                .filter(u -> u.getType() == type)
+                .count();
+            System.out.println("  " + type + ": " + count + " units");
+        }
+        System.out.println("Total space used: " + (TOTAL_SPACE - remainingSpace));
     }
 
     private void loadGame() {

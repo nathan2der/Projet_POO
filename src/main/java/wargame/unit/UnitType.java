@@ -13,17 +13,18 @@ public enum UnitType {
     // MAGE(8, 2, 5, 1, 3);          // Ranged attack with magic
     
     // Modified values with "infinite" movement points:
-    INFANTRY(12, 999, 999, 2, 1),     // Balanced unit with infinite movement
-    HEAVY_INFANTRY(20, 999, 6, 4, 1), // Strong with infinite movement
-    CAVALRY(10, 999, 5, 1, 1),      // Strong attack with infinite movement
-    ARCHER(8, 999, 4, 1, 3),        // Ranged attack with infinite movement
-    MAGE(8, 999, 5, 1, 3);          // Magic with infinite movement
+    INFANTRY(12, 999, 999, 2, 1, 2),     // Balanced unit with infinite movement
+    HEAVY_INFANTRY(20, 999, 6, 4, 1, 7), // Strong with infinite movement
+    CAVALRY(10, 999, 5, 1, 1, 5),      // Strong attack with infinite movement
+    ARCHER(8, 999, 4, 1, 3, 1),        // Ranged attack with infinite movement
+    MAGE(8, 999, 5, 1, 3, 2);          // Magic with infinite movement
 
     private final int health;
     private final int movement;
     private final int attack;
     private final int defense;
     private final int range;
+    private final int spaceCost;
 
     /**
      * Creates a new unit type with specified stats.
@@ -32,13 +33,15 @@ public enum UnitType {
      * @param attack Base attack strength
      * @param defense Base defense strength
      * @param range Attack range in hexes
+     * @param spaceCost Space cost in army
      */
-    UnitType(int health, int movement, int attack, int defense, int range) {
+    UnitType(int health, int movement, int attack, int defense, int range, int spaceCost) {
         this.health = health;
         this.movement = movement;
         this.attack = attack;
         this.defense = defense;
         this.range = range;
+        this.spaceCost = spaceCost;
     }
 
     /**
@@ -79,5 +82,13 @@ public enum UnitType {
      */
     public int getRange() {
         return range;
+    }
+
+    /**
+     * Gets the space cost for this unit type.
+     * @return The space cost
+     */
+    public int getSpaceCost() {
+        return spaceCost;
     }
 }

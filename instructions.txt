@@ -120,3 +120,13 @@ that is manually determined in the UnitType file.
 7. **Documentation**
    - Create a user manual
    - Document the game architecture and design patterns used
+
+
+Each player has 100 troups space. Each unit takes a fixed amount of space.
+- archer : 1 place
+- infantry : 2 places
+- mage : 2 places 
+- cavalry : 5 places
+- heavy infantry : 7 places
+
+Players will have their troups space randomly filled. To assure equity between players, they both must have their troups space filled (100 places). Implement this system and don't forget to place the unit accordingly on their side 
