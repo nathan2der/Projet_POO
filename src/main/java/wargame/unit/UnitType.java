@@ -38,6 +38,7 @@ public enum UnitType {
     UnitType(int health, int movement, int attack, int defense, int range, int spaceCost) {
         this.health = health;
         this.movement = movement;
+        this.max_movement = movement;
         this.attack = attack;
         this.defense = defense;
         this.range = range;
@@ -53,11 +54,18 @@ public enum UnitType {
     }
 
     /**
-     * Gets the movement points per turn for this unit type.
+     * Gets the movement points of this turn for this unit type.
      * @return The movement points
      */
     public int getMovement() {
         return movement;
+    }
+    /**
+     * Gets the movement points per turn for this unit type.
+     * @return The movement points
+     */
+    public int getMaxMovement() {
+        return max_movement;
     }
 
     /**
