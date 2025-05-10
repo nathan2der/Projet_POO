@@ -3,6 +3,7 @@ package wargame.ui;
 import wargame.game.Game;
 import wargame.map.GameMap;
 import wargame.player.Player;
+import wargame.player.AIPlayer;
 import wargame.unit.Unit;
 import wargame.unit.UnitType;
 import wargame.terrain.TerrainType;
@@ -149,12 +150,56 @@ public class MainMenu extends JFrame {
     }
 
     private void startNewGame() {
+        // Create game mode selection dialog
+        String[] options = {"Play against another player", "Play against CPU"};
+        int gameMode = JOptionPane.showOptionDialog(
+            this,
+            "Select game mode:",
+            "Game Mode",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        if (gameMode == JOptionPane.CLOSED_OPTION) {
+            return;
+        }
+
+        // Get player names
+        String player1Name = JOptionPane.showInputDialog(
+            this,
+            "Enter Player 1 name:",
+            "Player 1",
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (player1Name == null || player1Name.trim().isEmpty()) {
+            player1Name = "Player 1";
+        }
+
+        String player2Name;
+        if (gameMode == 0) { // Local multiplayer
+            player2Name = JOptionPane.showInputDialog(
+                this,
+                "Enter Player 2 name:",
+                "Player 2",
+                JOptionPane.QUESTION_MESSAGE
+            );
+            if (player2Name == null || player2Name.trim().isEmpty()) {
+                player2Name = "Player 2";
+            }
+        } else { // CPU opponent
+            player2Name = "CPU";
+        }
+
         // Create new game map
         GameMap map = new GameMap(20, 15);
         
         // Create players
-        Player player1 = new Player("Player 1");
-        Player player2 = new Player("Player 2");
+        Player player1 = new Player(player1Name);
+        Player player2 = gameMode == 0 ? new Player(player2Name) : new AIPlayer(player2Name);
         
         // Create and place units for player 1
         Unit infantry1 = new Unit(UnitType.INFANTRY, player1);
@@ -209,8 +254,8 @@ public class MainMenu extends JFrame {
         
         // Debug output to verify unit counts
         System.out.println("Starting new game with:");
-        System.out.println("  Player 1: " + player1.getUnits().size() + " units");
-        System.out.println("  Player 2: " + player2.getUnits().size() + " units");
+        System.out.println("  " + player1Name + ": " + player1.getUnits().size() + " units");
+        System.out.println("  " + player2Name + ": " + player2.getUnits().size() + " units");
         
         // Create and show game window
         GameWindow gameWindow = new GameWindow(game);

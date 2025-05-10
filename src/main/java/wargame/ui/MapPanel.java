@@ -194,8 +194,8 @@ public class MapPanel extends JPanel {
             case ARCHER -> "archer";
             case MAGE -> "mage";
         };
-        // Player 1 = left (1), Player 2 = right (2)
-        int facing = (unit.getOwner().getName().equals("Player 1")) ? 1 : 2;
+        // First player = right (2), Second player = left (1)
+        int facing = (unit.getOwner() == game.getPlayers().get(0)) ? 1 : 2;
         String key = typeKey + facing;
         BufferedImage img = unitImages.getOrDefault(key, questionImage);
 
@@ -382,8 +382,9 @@ public class MapPanel extends JPanel {
                     // Check if unit was destroyed
                     if (tileUnit.getCurrentHealth() <= 0) {
                         System.out.println("Unit destroyed in MapPanel.handleTileSelection");
-                        parentWindow.infoPanel.addToGameLog(tileUnit.getOwner().getName() + "'s " 
-                            + tileUnit.getType() + " was destroyed!");
+                        // Remove duplicate log message
+                        // parentWindow.infoPanel.addToGameLog(tileUnit.getOwner().getName() + "'s " 
+                        //     + tileUnit.getType() + " was destroyed!");
                             
                         // Explicitly check victory condition here
                         System.out.println("Explicitly checking victory condition after unit destroyed...");
