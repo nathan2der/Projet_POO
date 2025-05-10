@@ -6,6 +6,7 @@ import wargame.unit.UnitType;
 import wargame.player.Player;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 
 /**
@@ -19,13 +20,21 @@ public class InfoPanel extends JPanel {
     private final JLabel playerStatsLabel;
     private final JTextArea gameLog;
     private final JScrollPane gameLogScroll;
+    private final JPanel gameLogPanel;
+    private final JPanel unitInfoPanel;
+    private final JTextArea unitInfo;
 
     public InfoPanel(Game game) {
         this.game = game;
-        setPreferredSize(new Dimension(250, 600));
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        this.unitInfo = new JTextArea();
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(250, 0));
+        
+        // Apply dark mode if enabled
+        if (MainMenu.isDarkMode()) {
+            setBackground(new Color(43, 43, 43));
+        }
+        
         // Create labels with custom fonts
         Font headerFont = new Font("Arial", Font.BOLD, 14);
         Font normalFont = new Font("Arial", Font.PLAIN, 12);
@@ -54,36 +63,52 @@ public class InfoPanel extends JPanel {
         playerStatsPanel.add(playerStatsLabel);
 
         // Unit info section
-        JPanel unitInfoPanel = new JPanel();
-        unitInfoPanel.setLayout(new BoxLayout(unitInfoPanel, BoxLayout.Y_AXIS));
+        unitInfoPanel = new JPanel();
+        unitInfoPanel.setLayout(new BorderLayout());
         unitInfoPanel.setBorder(BorderFactory.createTitledBorder("Selected Unit"));
+        if (MainMenu.isDarkMode()) {
+            unitInfoPanel.setBackground(new Color(43, 43, 43));
+            unitInfoPanel.setForeground(Color.WHITE);
+            ((TitledBorder)unitInfoPanel.getBorder()).setTitleColor(Color.WHITE);
+        }
 
         unitInfoLabel = new JLabel("No unit selected");
         unitInfoLabel.setFont(normalFont);
-        unitInfoPanel.add(unitInfoLabel);
+        unitInfoPanel.add(unitInfoLabel, BorderLayout.CENTER);
 
         // Game log section
-        JPanel gameLogPanel = new JPanel(new BorderLayout());
+        gameLogPanel = new JPanel();
+        gameLogPanel.setLayout(new BorderLayout());
         gameLogPanel.setBorder(BorderFactory.createTitledBorder("Game Log"));
+        if (MainMenu.isDarkMode()) {
+            gameLogPanel.setBackground(new Color(43, 43, 43));
+            gameLogPanel.setForeground(Color.WHITE);
+            ((TitledBorder)gameLogPanel.getBorder()).setTitleColor(Color.WHITE);
+        }
         
         gameLog = new JTextArea();
         gameLog.setEditable(false);
         gameLog.setFont(normalFont);
         gameLog.setLineWrap(true);
         gameLog.setWrapStyleWord(true);
+        if (MainMenu.isDarkMode()) {
+            gameLog.setBackground(new Color(60, 60, 60));
+            gameLog.setForeground(Color.WHITE);
+            gameLog.setCaretColor(Color.WHITE);
+        }
         
         gameLogScroll = new JScrollPane(gameLog);
-        gameLogScroll.setPreferredSize(new Dimension(230, 200));
+        if (MainMenu.isDarkMode()) {
+            gameLogScroll.getViewport().setBackground(new Color(60, 60, 60));
+        }
         gameLogPanel.add(gameLogScroll, BorderLayout.CENTER);
 
-        // Add all sections to main panel
-        add(gameStatePanel);
-        add(Box.createVerticalStrut(10));
-        add(playerStatsPanel);
-        add(Box.createVerticalStrut(10));
-        add(unitInfoPanel);
-        add(Box.createVerticalStrut(10));
-        add(gameLogPanel);
+        // Create a split pane to allow resizing
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, gameLogPanel, unitInfoPanel);
+        splitPane.setResizeWeight(0.7); // Give more space to game log
+        
+        // Add split pane to panel
+        add(splitPane, BorderLayout.CENTER);
     }
 
     public void update() {
@@ -153,8 +178,7 @@ public class InfoPanel extends JPanel {
      * @param message The message to add
      */
     public void addToGameLog(String message) {
-        gameLog.append("[Turn " + game.getTurnNumber() + "] " + message + "\n");
-        // Scroll to bottom
+        gameLog.append(message + "\n");
         gameLog.setCaretPosition(gameLog.getDocument().getLength());
     }
     
@@ -176,5 +200,20 @@ public class InfoPanel extends JPanel {
      */
     public void clearGameLog() {
         gameLog.setText("");
+    }
+
+    public void updateUnitInfo(Unit unit) {
+        if (unit == null) {
+            unitInfo.setText("");
+            return;
+        }
+        
+        StringBuilder info = new StringBuilder();
+        info.append("Type: ").append(unit.getType()).append("\n");
+        info.append("Health: ").append(unit.getHealth()).append("/").append(unit.getMaxHealth()).append("\n");
+        info.append("Movement: ").append(unit.getMovementPoints()).append("\n");
+        info.append("Owner: ").append(unit.getOwner().getName()).append("\n");
+        
+        unitInfo.setText(info.toString());
     }
 } 

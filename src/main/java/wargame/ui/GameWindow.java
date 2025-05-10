@@ -34,6 +34,11 @@ public class GameWindow extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
+        // Apply dark mode if enabled
+        if (MainMenu.isDarkMode()) {
+            applyDarkMode();
+        }
+        
         // Create menu bar
         createMenuBar();
         
@@ -58,6 +63,11 @@ public class GameWindow extends JFrame {
         // Create status bar
         statusLabel = new JLabel("Ready");
         statusLabel.setBorder(BorderFactory.createEtchedBorder());
+        if (MainMenu.isDarkMode()) {
+            statusLabel.setForeground(Color.WHITE);
+            statusLabel.setBackground(new Color(43, 43, 43));
+            statusLabel.setOpaque(true);
+        }
         add(statusLabel, BorderLayout.SOUTH);
         
         // Add initial message to game log
@@ -103,8 +113,53 @@ public class GameWindow extends JFrame {
         });
     }
 
+    private void applyDarkMode() {
+        // Set window background
+        getContentPane().setBackground(new Color(43, 43, 43));
+        setBackground(new Color(43, 43, 43));
+        
+        // Apply dark mode to menu bar
+        JMenuBar menuBar = getJMenuBar();
+        if (menuBar != null) {
+            menuBar.setBackground(new Color(60, 60, 60));
+            menuBar.setForeground(Color.WHITE);
+            
+            // Apply to all menus
+            for (int i = 0; i < menuBar.getMenuCount(); i++) {
+                JMenu menu = menuBar.getMenu(i);
+                menu.setForeground(Color.WHITE);
+                
+                // Apply to all menu items
+                for (int j = 0; j < menu.getItemCount(); j++) {
+                    JMenuItem item = menu.getItem(j);
+                    if (item != null) {
+                        item.setBackground(new Color(60, 60, 60));
+                        item.setForeground(Color.WHITE);
+                    }
+                }
+            }
+        }
+        
+        // Apply dark mode to toolbar
+        if (toolBar != null) {
+            toolBar.setBackground(new Color(60, 60, 60));
+            for (Component comp : toolBar.getComponents()) {
+                if (comp instanceof JButton) {
+                    JButton button = (JButton) comp;
+                    button.setBackground(new Color(80, 80, 80));
+                    button.setForeground(Color.WHITE);
+                    button.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+                }
+            }
+        }
+    }
+
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
+        if (MainMenu.isDarkMode()) {
+            menuBar.setBackground(new Color(60, 60, 60));
+            menuBar.setForeground(Color.WHITE);
+        }
         
         // File menu
         JMenu fileMenu = new JMenu("File");
@@ -112,6 +167,19 @@ public class GameWindow extends JFrame {
         JMenuItem saveGameItem = new JMenuItem("Save Game");
         JMenuItem loadGameItem = new JMenuItem("Load Game");
         JMenuItem exitItem = new JMenuItem("Exit");
+        
+        // Apply dark mode to menu items
+        if (MainMenu.isDarkMode()) {
+            fileMenu.setForeground(Color.WHITE);
+            newGameItem.setBackground(new Color(60, 60, 60));
+            newGameItem.setForeground(Color.WHITE);
+            saveGameItem.setBackground(new Color(60, 60, 60));
+            saveGameItem.setForeground(Color.WHITE);
+            loadGameItem.setBackground(new Color(60, 60, 60));
+            loadGameItem.setForeground(Color.WHITE);
+            exitItem.setBackground(new Color(60, 60, 60));
+            exitItem.setForeground(Color.WHITE);
+        }
         
         fileMenu.add(newGameItem);
         fileMenu.add(saveGameItem);
@@ -124,6 +192,14 @@ public class GameWindow extends JFrame {
         JMenuItem endTurnItem = new JMenuItem("End Turn");
         JMenuItem surrenderItem = new JMenuItem("Surrender");
         
+        if (MainMenu.isDarkMode()) {
+            gameMenu.setForeground(Color.WHITE);
+            endTurnItem.setBackground(new Color(60, 60, 60));
+            endTurnItem.setForeground(Color.WHITE);
+            surrenderItem.setBackground(new Color(60, 60, 60));
+            surrenderItem.setForeground(Color.WHITE);
+        }
+        
         gameMenu.add(endTurnItem);
         gameMenu.add(surrenderItem);
         
@@ -131,6 +207,14 @@ public class GameWindow extends JFrame {
         JMenu helpMenu = new JMenu("Help");
         JMenuItem rulesItem = new JMenuItem("Game Rules");
         JMenuItem aboutItem = new JMenuItem("About");
+        
+        if (MainMenu.isDarkMode()) {
+            helpMenu.setForeground(Color.WHITE);
+            rulesItem.setBackground(new Color(60, 60, 60));
+            rulesItem.setForeground(Color.WHITE);
+            aboutItem.setBackground(new Color(60, 60, 60));
+            aboutItem.setForeground(Color.WHITE);
+        }
         
         helpMenu.add(rulesItem);
         helpMenu.add(aboutItem);
@@ -157,12 +241,25 @@ public class GameWindow extends JFrame {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
         
+        if (MainMenu.isDarkMode()) {
+            toolBar.setBackground(new Color(60, 60, 60));
+        }
+        
         // Add buttons
         JButton endTurnButton = new JButton("End Turn");
         JButton surrenderButton = new JButton("Surrender");
         JButton saveButton = new JButton("Save");
         JButton loadButton = new JButton("Load");
         JButton debugButton = new JButton("Debug Units");
+        
+        // Apply dark mode to buttons
+        if (MainMenu.isDarkMode()) {
+            for (JButton button : new JButton[]{endTurnButton, surrenderButton, saveButton, loadButton, debugButton}) {
+                button.setBackground(new Color(80, 80, 80));
+                button.setForeground(Color.WHITE);
+                button.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+            }
+        }
         
         // Add action listeners
         endTurnButton.addActionListener(e -> endTurn());

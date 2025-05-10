@@ -17,6 +17,7 @@ import java.util.List;
 public class MainMenu extends JFrame {
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
+    private static boolean darkMode = false;
 
     public MainMenu() {
         setupWindow();
@@ -29,17 +30,20 @@ public class MainMenu extends JFrame {
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         setResizable(false);
+        applyTheme();
     }
 
     private void createMenuPanel() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+        mainPanel.setBackground(darkMode ? new Color(43, 43, 43) : Color.WHITE);
 
         // Title
         JLabel titleLabel = new JLabel("WARGAME");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 48));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setForeground(darkMode ? Color.WHITE : Color.BLACK);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createVerticalStrut(50));
 
@@ -47,12 +51,14 @@ public class MainMenu extends JFrame {
         JButton newGameButton = createMenuButton("New Game");
         JButton loadGameButton = createMenuButton("Load Game");
         JButton rulesButton = createMenuButton("Game Rules");
+        JButton settingsButton = createMenuButton("Settings");
         JButton exitButton = createMenuButton("Exit");
 
         // Add action listeners
         newGameButton.addActionListener(e -> startNewGame());
         loadGameButton.addActionListener(e -> loadGame());
         rulesButton.addActionListener(e -> showRules());
+        settingsButton.addActionListener(e -> showSettings());
         exitButton.addActionListener(e -> System.exit(0));
 
         // Add buttons to panel
@@ -61,6 +67,8 @@ public class MainMenu extends JFrame {
         mainPanel.add(loadGameButton);
         mainPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(rulesButton);
+        mainPanel.add(Box.createVerticalStrut(20));
+        mainPanel.add(settingsButton);
         mainPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(exitButton);
 
@@ -72,7 +80,72 @@ public class MainMenu extends JFrame {
         button.setFont(new Font("Arial", Font.PLAIN, 24));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(300, 50));
+        
+        // Apply dark mode styling
+        if (darkMode) {
+            button.setBackground(new Color(60, 60, 60));
+            button.setForeground(Color.WHITE);
+            button.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+        }
+        
         return button;
+    }
+
+    private void showSettings() {
+        JDialog settingsDialog = new JDialog(this, "Settings", true);
+        settingsDialog.setLayout(new BorderLayout());
+        settingsDialog.setSize(400, 300);
+        settingsDialog.setLocationRelativeTo(this);
+
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS));
+        settingsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        settingsPanel.setBackground(darkMode ? new Color(43, 43, 43) : Color.WHITE);
+
+        // Dark Mode Toggle
+        JCheckBox darkModeCheckBox = new JCheckBox("Dark Mode");
+        darkModeCheckBox.setSelected(darkMode);
+        darkModeCheckBox.setForeground(darkMode ? Color.WHITE : Color.BLACK);
+        darkModeCheckBox.addActionListener(e -> {
+            darkMode = darkModeCheckBox.isSelected();
+            applyTheme();
+            settingsDialog.dispose();
+            dispose();
+            new MainMenu().setVisible(true);
+        });
+
+        settingsPanel.add(darkModeCheckBox);
+        settingsPanel.add(Box.createVerticalStrut(20));
+
+        // Add OK button
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> settingsDialog.dispose());
+        if (darkMode) {
+            okButton.setBackground(new Color(60, 60, 60));
+            okButton.setForeground(Color.WHITE);
+        }
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(darkMode ? new Color(43, 43, 43) : Color.WHITE);
+        buttonPanel.add(okButton);
+
+        settingsDialog.add(settingsPanel, BorderLayout.CENTER);
+        settingsDialog.add(buttonPanel, BorderLayout.SOUTH);
+        settingsDialog.setVisible(true);
+    }
+
+    private void applyTheme() {
+        if (darkMode) {
+            getContentPane().setBackground(new Color(43, 43, 43));
+            setBackground(new Color(43, 43, 43));
+        } else {
+            getContentPane().setBackground(Color.WHITE);
+            setBackground(Color.WHITE);
+        }
+    }
+
+    public static boolean isDarkMode() {
+        return darkMode;
     }
 
     private void startNewGame() {

@@ -15,6 +15,10 @@ all: clean compile
 .PHONY: clean
 clean:
 	$(MAVEN) clean
+	@echo "Cleaning compiled files..."
+	@rm -rf $(TARGET_DIR)
+	@find . -name "*.class" -type f -delete
+	@echo "Clean complete"
 
 # Compile the project
 .PHONY: compile
@@ -53,7 +57,7 @@ build-run: clean compile run
 help:
 	@echo "Available targets:"
 	@echo "  all            - Clean and compile the project (default)"
-	@echo "  clean          - Clean the project"
+	@echo "  clean          - Clean the project (removes all compiled files)"
 	@echo "  compile        - Compile the project"
 	@echo "  run            - Run the game with menu"
 	@echo "  package        - Create a JAR file"
