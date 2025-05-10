@@ -77,7 +77,7 @@ public class MainMenu extends JFrame {
 
     private void startNewGame() {
         // Create new game map
-        GameMap map = new GameMap(10, 10);
+        GameMap map = new GameMap(20, 15);
         
         // Create players
         Player player1 = new Player("Player 1");
@@ -88,23 +88,43 @@ public class MainMenu extends JFrame {
         Unit archer1 = new Unit(UnitType.ARCHER, player1);
         Unit cavalry1 = new Unit(UnitType.CAVALRY, player1);
         
-        map.placeUnit(infantry1, 0, 0);
-        map.placeUnit(archer1, 1, 0);
-        map.placeUnit(cavalry1, 2, 0);
+        // Place player 1 units on the left side with better spacing
+        map.placeUnit(infantry1, 0, 7);
+        map.placeUnit(archer1, 1, 6);
+        map.placeUnit(cavalry1, 2, 7);
         
         // Create and place units for player 2
         Unit infantry2 = new Unit(UnitType.INFANTRY, player2);
         Unit heavyInfantry2 = new Unit(UnitType.HEAVY_INFANTRY, player2);
         Unit mage2 = new Unit(UnitType.MAGE, player2);
         
-        map.placeUnit(infantry2, 7, 9);
-        map.placeUnit(heavyInfantry2, 8, 9);
-        map.placeUnit(mage2, 9, 9);
+        // Place player 2 units on the right side with better spacing
+        map.placeUnit(infantry2, 17, 7);
+        map.placeUnit(heavyInfantry2, 18, 6);
+        map.placeUnit(mage2, 19, 7);
         
-        // Add some terrain variety
-        for (int x = 3; x < 7; x++) {
-            for (int y = 3; y < 7; y++) {
-                map.getTile(x, y).setTerrainType(TerrainType.FOREST);
+        // Generate random terrain
+        TerrainType[] terrainTypes = TerrainType.values();
+        for (int x = 0; x < map.getWidth(); x++) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                // Skip tiles with units
+                if (map.getTile(x, y).getUnit() != null) {
+                    continue;
+                }
+                
+                // Generate random terrain
+                double random = Math.random();
+                if (random < 0.3) {
+                    map.getTile(x, y).setTerrainType(TerrainType.PLAINS);
+                } else if (random < 0.5) {
+                    map.getTile(x, y).setTerrainType(TerrainType.FOREST);
+                } else if (random < 0.7) {
+                    map.getTile(x, y).setTerrainType(TerrainType.MOUNTAIN);
+                } else if (random < 0.85) {
+                    map.getTile(x, y).setTerrainType(TerrainType.WATER);
+                } else {
+                    map.getTile(x, y).setTerrainType(TerrainType.VILLAGE);
+                }
             }
         }
         
@@ -113,6 +133,11 @@ public class MainMenu extends JFrame {
         players.add(player1);
         players.add(player2);
         Game game = new Game(map, players);
+        
+        // Debug output to verify unit counts
+        System.out.println("Starting new game with:");
+        System.out.println("  Player 1: " + player1.getUnits().size() + " units");
+        System.out.println("  Player 2: " + player2.getUnits().size() + " units");
         
         // Create and show game window
         GameWindow gameWindow = new GameWindow(game);

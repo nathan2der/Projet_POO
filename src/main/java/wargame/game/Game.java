@@ -77,6 +77,14 @@ public class Game {
     }
 
     /**
+     * Gets all players in the game.
+     * @return List of players
+     */
+    public List<Player> getPlayers() {
+        return turnManager.getPlayers();
+    }
+
+    /**
      * Places a unit on the map, ensuring minimum distance from enemy units.
      * @param unit The unit to place
      * @param x The x coordinate

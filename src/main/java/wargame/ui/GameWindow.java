@@ -21,7 +21,7 @@ import java.io.ObjectInputStream;
  */
 public class GameWindow extends JFrame {
     private final MapPanel mapPanel;
-    private final InfoPanel infoPanel;
+    final InfoPanel infoPanel;
     private final JToolBar toolBar;
     private final JLabel statusLabel;
     private final Game game;
@@ -45,6 +45,9 @@ public class GameWindow extends JFrame {
         mapPanel = new MapPanel(game);
         infoPanel = new InfoPanel(game);
         
+        // Set parent window reference for logging
+        mapPanel.setParentWindow(this);
+        
         // Create a split pane to allow resizing
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, infoPanel);
         splitPane.setResizeWeight(0.85); // Give more space to mapPanel
@@ -56,6 +59,11 @@ public class GameWindow extends JFrame {
         statusLabel = new JLabel("Ready");
         statusLabel.setBorder(BorderFactory.createEtchedBorder());
         add(statusLabel, BorderLayout.SOUTH);
+        
+        // Add initial message to game log
+        infoPanel.addToGameLog("Game started");
+        infoPanel.addToGameLog("--- Turn 1 begins ---");
+        infoPanel.addToGameLog(game.getCurrentPlayer().getName() + "'s turn");
         
         // Calculate optimal window size based on map dimensions
         GameMap map = game.getGameMap();
@@ -154,12 +162,14 @@ public class GameWindow extends JFrame {
         JButton surrenderButton = new JButton("Surrender");
         JButton saveButton = new JButton("Save");
         JButton loadButton = new JButton("Load");
+        JButton debugButton = new JButton("Debug Units");
         
         // Add action listeners
         endTurnButton.addActionListener(e -> endTurn());
         surrenderButton.addActionListener(e -> surrender());
         saveButton.addActionListener(e -> saveGame());
         loadButton.addActionListener(e -> loadGame());
+        debugButton.addActionListener(e -> debugUnits());
         
         // Add buttons to toolbar
         toolBar.add(endTurnButton);
@@ -167,6 +177,7 @@ public class GameWindow extends JFrame {
         toolBar.addSeparator();
         toolBar.add(saveButton);
         toolBar.add(loadButton);
+        toolBar.add(debugButton);
         
         return toolBar;
     }
@@ -285,7 +296,88 @@ public class GameWindow extends JFrame {
     }
 
     private void endTurn() {
-        game.endTurn();
+        System.out.println("\n========== END TURN BUTTON CLICKED ==========");
+        Player previousPlayer = game.getCurrentPlayer();
+        
+        // Store references to previousPlayer's units before end turn
+        List<Unit> previousPlayerUnits = new ArrayList<>(previousPlayer.getUnits());
+        
+        // Print detailed debug info before ending turn
+        System.out.println("BEFORE TURN END - Details for " + previousPlayer.getName() + "'s units:");
+        for (Unit unit : previousPlayerUnits) {
+            System.out.println("  Unit " + unit.getType() + 
+                          " has movement " + unit.getRemainingMovement() + "/" + unit.getType().getMovement() +
+                          ", hasMoved=" + unit.hasMoved() +
+                          ", hasAttacked=" + unit.hasAttacked() +
+                          ", ID=" + System.identityHashCode(unit));
+        }
+        
+        // Print memory details of previous player's units
+        System.out.println("MEMORY DETAILS before turn end:");
+        for (Unit unit : previousPlayerUnits) {
+            System.out.println("  Unit " + unit.getType() + " at " + 
+                          System.identityHashCode(unit) + ", owner=" + 
+                          System.identityHashCode(unit.getOwner()));
+        }
+        
+        // End the turn through the Game object
+        boolean continueGame = game.endTurn();
+        
+        Player newPlayer = game.getCurrentPlayer();
+        
+        // Verify movement points after turn end
+        System.out.println("\nAFTER TURN END - Detailed unit status for all players:");
+        for (Player player : game.getPlayers()) {
+            System.out.println("Player: " + player.getName() + " (Is current: " + (player == newPlayer) + ")");
+            for (Unit unit : player.getUnits()) {
+                System.out.println("  Unit " + unit.getType() + " owned by " + player.getName() + 
+                              " has movement " + unit.getRemainingMovement() + "/" + unit.getType().getMovement() +
+                              ", hasMoved=" + unit.hasMoved() +
+                              ", hasAttacked=" + unit.hasAttacked() +
+                              ", ID=" + System.identityHashCode(unit));
+            }
+        }
+        
+        // Final safety check - ensure previous player's units have their movement properly reset
+        // This should rarely be needed if the TurnManager.endTurn is working properly
+        boolean anyUnitNeededReset = false;
+        for (Unit unit : previousPlayerUnits) {
+            // Only reset if actually needed
+            if (unit.getRemainingMovement() < unit.getType().getMovement() || unit.hasMoved() || unit.hasAttacked()) {
+                anyUnitNeededReset = true;
+                System.out.println("EMERGENCY RESET for unit " + unit.getType() + " owned by " + previousPlayer.getName() + 
+                                   " (ID=" + System.identityHashCode(unit) + ")");
+                
+                // Force a complete reset of all movement-related state
+                unit.resetMovementPoints(); // This now resets both movement points and flags
+                
+                // Force explicit state reset as a last resort
+                unit.setRemainingMovement(unit.getType().getMovement());
+                unit.setHasMoved(false);
+                unit.setHasAttacked(false);
+            }
+        }
+        
+        // Only print verification if a reset was needed
+        if (anyUnitNeededReset) {
+            System.out.println("\nAFTER EMERGENCY RESET:");
+            for (Unit unit : previousPlayerUnits) {
+                System.out.println("  Unit " + unit.getType() + " owned by " + previousPlayer.getName() + 
+                              " now has movement " + unit.getRemainingMovement() + "/" + 
+                              unit.getType().getMovement() +
+                              ", hasMoved=" + unit.hasMoved() + 
+                              ", hasAttacked=" + unit.hasAttacked());
+            }
+        }
+        
+        System.out.println("========== END TURN COMPLETE ==========\n");
+        
+        // Check for victory conditions
+        if (!continueGame) {
+            checkVictoryCondition();
+            return;
+        }
+        
         updateStatus("Turn ended - " + game.getCurrentPlayer().getName() + "'s turn");
         update();
     }
@@ -300,26 +392,34 @@ public class GameWindow extends JFrame {
         
         if (response == JOptionPane.YES_OPTION) {
             Player currentPlayer = game.getCurrentPlayer();
+            Player winner = null;
+            
+            // Find the other player (the winner)
+            for (Player player : game.getPlayers()) {
+                if (player != currentPlayer) {
+                    winner = player;
+                    break;
+                }
+            }
             
             // Remove all units of the surrendering player
-            currentPlayer.getUnits().forEach(unit -> {
+            List<Unit> unitsToRemove = new ArrayList<>(currentPlayer.getUnits());
+            for (Unit unit : unitsToRemove) {
                 if (unit.getTile() != null) {
                     unit.getTile().setUnit(null);
                 }
-            });
-            currentPlayer.getUnits().clear();
+                currentPlayer.removeUnit(unit);
+            }
             
-            // Show victory message
-            JOptionPane.showMessageDialog(
-                this,
-                "Game Over - " + currentPlayer.getName() + " has surrendered.",
-                "Game Over",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+            // Log the surrender
+            infoPanel.addToGameLog(currentPlayer.getName() + " has surrendered");
             
             // Update UI
             update();
             updateStatus("Game Over - " + currentPlayer.getName() + " has surrendered!");
+            
+            // Show victory dialog
+            checkVictoryCondition();
         }
     }
 
@@ -359,5 +459,183 @@ public class GameWindow extends JFrame {
         mapPanel.repaint();
         infoPanel.update();
         updateStatus(game.getCurrentPlayer().getName() + "'s turn");
+    }
+    
+    /**
+     * Logs a unit movement action
+     * @param unit The unit that moved
+     * @param fromX The starting X coordinate
+     * @param fromY The starting Y coordinate
+     * @param toX The destination X coordinate
+     * @param toY The destination Y coordinate
+     */
+    public void logUnitMovement(Unit unit, int fromX, int fromY, int toX, int toY) {
+        String details = "from (" + fromX + "," + fromY + ") to (" + toX + "," + toY + ")";
+        infoPanel.addUnitActionToLog(unit, "moved", details);
+    }
+    
+    /**
+     * Logs a unit attack action
+     * @param attacker The attacking unit
+     * @param defender The defending unit
+     * @param damage The damage dealt
+     */
+    public void logUnitAttack(Unit attacker, Unit defender, int damage) {
+        String details = "attacked " + defender.getOwner().getName() + "'s " + 
+                         defender.getType() + " for " + damage + " damage";
+        infoPanel.addUnitActionToLog(attacker, "", details);
+        
+        // Check if the defender was destroyed
+        if (defender.getCurrentHealth() <= 0) {
+            infoPanel.addToGameLog(defender.getOwner().getName() + "'s " + 
+                defender.getType() + " was destroyed!");
+            
+            // Check if this caused a victory condition
+            checkVictoryCondition();
+        }
+    }
+
+    /**
+     * Debug method to print detailed information about all units' movement points
+     */
+    private void debugUnits() {
+        infoPanel.addToGameLog("==== DEBUG: UNIT MOVEMENT INFO ====");
+        
+        // Print info for current player
+        Player currentPlayer = game.getCurrentPlayer();
+        infoPanel.addToGameLog("Current player: " + currentPlayer.getName());
+        
+        for (Unit unit : currentPlayer.getUnits()) {
+            String info = String.format("Unit %s: remainingMovement=%d, maxMovement=%d, hasMoved=%b",
+                unit.getType(),
+                unit.getRemainingMovement(),
+                unit.getType().getMovement(),
+                unit.hasMoved());
+            infoPanel.addToGameLog(info);
+        }
+        
+        // Print info for other players too
+        for (Player player : game.getPlayers()) {
+            if (player != currentPlayer) {
+                infoPanel.addToGameLog("Other player: " + player.getName());
+                for (Unit unit : player.getUnits()) {
+                    String info = String.format("Unit %s: remainingMovement=%d, maxMovement=%d, hasMoved=%b",
+                        unit.getType(),
+                        unit.getRemainingMovement(),
+                        unit.getType().getMovement(),
+                        unit.hasMoved());
+                    infoPanel.addToGameLog(info);
+                }
+            }
+        }
+        
+        infoPanel.addToGameLog("==== END DEBUG INFO ====");
+    }
+
+    /**
+     * Checks if the game has ended and shows a victory dialog if needed.
+     * This should be called after any action that might result in a player's defeat.
+     */
+    public void checkVictoryCondition() {
+        System.out.println("Checking victory condition...");
+        Player winner = game.getWinner();
+        
+        // Debug output to help diagnose issues
+        System.out.println("Winner check result: " + (winner != null ? winner.getName() : "No winner yet"));
+        for (Player player : game.getPlayers()) {
+            System.out.println("  " + player.getName() + " has " + player.getUnits().size() + " units left");
+        }
+        
+        if (winner != null) {
+            // Log the victory
+            infoPanel.addToGameLog("Game Over - " + winner.getName() + " has won!");
+            System.out.println("VICTORY DETECTED: " + winner.getName() + " has won!");
+            
+            try {
+                // Use the standalone VictoryDialog class
+                VictoryDialog.show(this, winner);
+            } catch (Exception e) {
+                System.err.println("Error showing victory dialog: " + e.getMessage());
+                e.printStackTrace();
+                
+                // Fallback to simple message dialog if custom dialog fails
+                JOptionPane.showMessageDialog(
+                    this,
+                    winner.getName() + " has won the game!\nAll enemy units have been defeated.",
+                    "Game Over",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        }
+    }
+    
+    /**
+     * Shows a simple victory dialog for the winning player.
+     * This is a simplified version that doesn't rely on the MapPanel or AssetManager.
+     * 
+     * @param winner The winning player
+     */
+    private void showSimpleVictoryDialog(Player winner) {
+        // Create custom dialog for victory announcement
+        final JDialog victoryDialog = new JDialog(this, "Game Over", true);
+        victoryDialog.setLayout(new BorderLayout());
+        victoryDialog.setSize(400, 250);
+        victoryDialog.setLocationRelativeTo(this);
+        
+        // Create victory message panel
+        JPanel messagePanel = new JPanel();
+        messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
+        messagePanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Add victory message
+        JLabel victoryLabel = new JLabel(winner.getName() + " has won the game!");
+        victoryLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        victoryLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JLabel detailsLabel = new JLabel("All enemy units have been defeated.");
+        detailsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        detailsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add components to message panel
+        messagePanel.add(victoryLabel);
+        messagePanel.add(Box.createVerticalStrut(20));
+        messagePanel.add(detailsLabel);
+        messagePanel.add(Box.createVerticalStrut(30));
+        
+        // Create button panel
+        JPanel buttonPanel = new JPanel();
+        
+        // Add return to main menu button
+        JButton menuButton = new JButton("Return to Main Menu");
+        menuButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        menuButton.addActionListener(e -> {
+            victoryDialog.dispose();
+            returnToMainMenu();
+        });
+        
+        // Add button to panel
+        buttonPanel.add(menuButton);
+        
+        // Add panels to dialog
+        victoryDialog.add(messagePanel, BorderLayout.CENTER);
+        victoryDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Ensure dialog is shown on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> {
+            // Show the dialog
+            victoryDialog.setVisible(true);
+        });
+    }
+    
+    /**
+     * Returns to the main menu by closing the current window and opening the main menu.
+     */
+    private void returnToMainMenu() {
+        // Create and show the main menu
+        MainMenu mainMenu = new MainMenu();
+        mainMenu.setVisible(true);
+        
+        // Close the current game window
+        this.dispose();
     }
 } 

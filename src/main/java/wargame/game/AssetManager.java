@@ -31,7 +31,7 @@ public class AssetManager {
             terrainImages.put(TerrainType.FOREST, ImageIO.read(AssetManager.class.getResource("/assets/terrain/foret3.png")));
             terrainImages.put(TerrainType.MOUNTAIN, ImageIO.read(AssetManager.class.getResource("/assets/terrain/motagne3.png")));
             terrainImages.put(TerrainType.WATER, ImageIO.read(AssetManager.class.getResource("/assets/terrain/riviere3.png")));
-            terrainImages.put(TerrainType.ROAD, ImageIO.read(AssetManager.class.getResource("/assets/terrain/grass01.png")));
+            terrainImages.put(TerrainType.VILLAGE, ImageIO.read(AssetManager.class.getResource("/assets/terrain/village3.png")));
 
             // Load default images
             defaultUnitImage = ImageIO.read(AssetManager.class.getResource("/assets/units/ptInterrogation.png"));

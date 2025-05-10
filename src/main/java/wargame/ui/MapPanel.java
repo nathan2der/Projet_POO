@@ -6,6 +6,7 @@ import wargame.map.HexTile;
 import wargame.terrain.TerrainType;
 import wargame.unit.Unit;
 import wargame.unit.UnitType;
+import wargame.game.AssetManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +32,7 @@ public class MapPanel extends JPanel {
     private List<Unit> validTargets;
     private static final Map<String, BufferedImage> unitImages = new HashMap<>();
     private static BufferedImage questionImage;
+    private GameWindow parentWindow;
 
     static {
         // Preload all unit images
@@ -57,6 +59,8 @@ public class MapPanel extends JPanel {
     public MapPanel(Game game) {
         this.game = game;
         this.map = game.getGameMap();
+        this.selectedTile = null;
+        
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
 
@@ -103,8 +107,41 @@ public class MapPanel extends JPanel {
             }
         }
         hex.closePath();
-        g2d.setColor(getTerrainColor(tile.getTerrainType()));
-        g2d.fill(hex);
+        
+        // Draw terrain texture
+        Image terrainImage = AssetManager.getTerrainImage(tile.getTerrainType());
+        if (terrainImage != null) {
+            // Fill with base color first to ensure no transparent areas
+            g2d.setColor(getTerrainColor(tile.getTerrainType()));
+            g2d.fill(hex);
+            
+            // Use clip to ensure the terrain image stays within the hex boundaries
+            Shape oldClip = g2d.getClip();
+            g2d.setClip(hex);
+            
+            // Size the image to fit the hex while maintaining aspect ratio
+            double scale = 1.0; // Full size to fill the hex completely
+            int imgW = (int)(hexWidth * scale);
+            int imgH = (int)(hexHeight * scale);
+            g2d.drawImage(terrainImage, 
+                (int)(centerX - imgW/2), 
+                (int)(centerY - imgH/2), 
+                imgW, imgH, null);
+            
+            // Restore the original clip
+            g2d.setClip(oldClip);
+        } else {
+            // Fallback: use color
+            g2d.setColor(getTerrainColor(tile.getTerrainType()));
+            g2d.fill(hex);
+        }
+        
+        // Draw hex border with slightly thicker stroke for clarity
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.draw(hex);
+        
+        // Draw color overlays for movement and selection
         if (validMoves != null && validMoves.contains(tile)) {
             g2d.setColor(new Color(0, 255, 0, 80));
             g2d.fill(hex);
@@ -123,12 +160,16 @@ public class MapPanel extends JPanel {
             g2d.setColor(new Color(255, 255, 0, 100));
             g2d.fill(hex);
         }
-        g2d.setColor(Color.BLACK);
-        g2d.setStroke(new BasicStroke(2));
-        g2d.draw(hex);
+        
+        // Comment out the coordinate display
+        /*
         g2d.setColor(Color.BLACK);
         g2d.setFont(new Font("Arial", Font.PLAIN, (int)(hexHeight / 5)));
         g2d.drawString(x + "," + y, (int)centerX - (int)(hexWidth/8), (int)centerY);
+        */
+        
+        // Comment out terrain type letter display
+        /*
         // Only show terrain type if not a valid move
         if ((validMoves == null || !validMoves.contains(tile)) && tile.getUnit() == null) {
             g2d.setColor(Color.BLACK);
@@ -136,6 +177,9 @@ public class MapPanel extends JPanel {
             g2d.drawString(tile.getTerrainType().toString().substring(0, 1),
                 (int)centerX - (int)(hexWidth/12), (int)centerY + (int)(hexHeight/4));
         }
+        */
+        
+        // Draw unit if present
         Unit unit = tile.getUnit();
         if (unit != null) {
             drawUnit(g2d, unit, centerX, centerY, hexWidth, hexHeight);
@@ -173,18 +217,44 @@ public class MapPanel extends JPanel {
         double healthPercentage = (double) unit.getCurrentHealth() / unit.getType().getHealth();
         int healthBarWidth = (int)(hexWidth/1.25);
         int healthBarHeight = (int)(hexHeight / 8);
-        g2d.setColor(Color.RED);
+        
+        // Gray background for all health bars
+        g2d.setColor(Color.DARK_GRAY);
         g2d.fillRect((int)(centerX - healthBarWidth/2), (int)(centerY - hexHeight/2.5 - healthBarHeight - 2), healthBarWidth, healthBarHeight);
-        g2d.setColor(Color.GREEN);
-        g2d.fillRect((int)(centerX - healthBarWidth/2), (int)(centerY - hexHeight/2.5 - healthBarHeight - 2), (int)(healthBarWidth * healthPercentage), healthBarHeight);
+        
+        // Choose health bar color based on unit ownership
+        boolean isCurrentPlayerUnit = unit.getOwner() == game.getCurrentPlayer();
+        
+        // Use green for current player's units, red for enemies
+        Color healthBarColor = isCurrentPlayerUnit ? Color.GREEN : Color.RED;
+        g2d.setColor(healthBarColor);
+        g2d.fillRect((int)(centerX - healthBarWidth/2), (int)(centerY - hexHeight/2.5 - healthBarHeight - 2), 
+                    (int)(healthBarWidth * healthPercentage), healthBarHeight);
+        
+        // Add a border around the health bar for better visibility
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(1));
+        g2d.drawRect((int)(centerX - healthBarWidth/2), (int)(centerY - hexHeight/2.5 - healthBarHeight - 2), 
+                    healthBarWidth, healthBarHeight);
 
         // Draw movement points
-        g2d.setColor(Color.BLUE);
-        g2d.setFont(new Font("Arial", Font.PLAIN, (int)(hexHeight / 4)));
-        String movementText = unit.getRemainingMovement() + "/" + unit.getType().getMovement();
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.BOLD, (int)(hexHeight / 4)));
+        String movementText = unit.getMovementPoints() + "/" + unit.getType().getMovement();
+        
+        // Create background for better visibility
         FontMetrics fm = g2d.getFontMetrics();
-        int textX = (int)(centerX - fm.stringWidth(movementText) / 2);
-        int textY = (int)(centerY + hexHeight/2.5 + fm.getHeight());
+        int textWidth = fm.stringWidth(movementText);
+        int textHeight = fm.getHeight();
+        int textX = (int)(centerX - textWidth / 2);
+        int textY = (int)(centerY + hexHeight/2.5);
+        
+        // Draw text background for better visibility
+        g2d.setColor(new Color(255, 255, 255, 180));
+        g2d.fillRect(textX - 2, textY - textHeight + 4, textWidth + 4, textHeight);
+        
+        // Draw movement text
+        g2d.setColor(Color.BLUE);
         g2d.drawString(movementText, textX, textY);
 
         // Draw attack range indicator if unit is selected
@@ -225,7 +295,7 @@ public class MapPanel extends JPanel {
             case FOREST -> new Color(34, 139, 34);    // Forest green
             case MOUNTAIN -> new Color(139, 137, 137); // Gray
             case WATER -> new Color(0, 191, 255);     // Deep sky blue
-            case ROAD -> new Color(210, 180, 140);    // Tan
+            case VILLAGE -> new Color(165, 42, 42);   // Brown
         };
     }
 
@@ -278,6 +348,10 @@ public class MapPanel extends JPanel {
         return (dx*dx)/(hexWidth*hexWidth/4) + (dy*dy)/(hexHeight*hexHeight/4) <= 1;
     }
 
+    public void setParentWindow(GameWindow window) {
+        this.parentWindow = window;
+    }
+
     private void handleTileSelection(HexTile tile) {
         Unit selectedUnit = game.getSelectedUnit();
         Unit tileUnit = tile.getUnit();
@@ -291,10 +365,31 @@ public class MapPanel extends JPanel {
             // Try to move or attack
             if (tileUnit == null && validMoves != null && validMoves.contains(tile)) {
                 // Try to move
-                game.moveSelectedUnit(tile.getX(), tile.getY());
+                int fromX = selectedUnit.getTile().getX();
+                int fromY = selectedUnit.getTile().getY();
+                boolean moved = game.moveSelectedUnit(tile.getX(), tile.getY());
+                if (moved && parentWindow != null) {
+                    parentWindow.logUnitMovement(selectedUnit, fromX, fromY, tile.getX(), tile.getY());
+                }
             } else if (tileUnit != null && validTargets != null && validTargets.contains(tileUnit)) {
                 // Try to attack
-                game.attackWithSelectedUnit(tileUnit);
+                int initialHealth = tileUnit.getCurrentHealth();
+                boolean attacked = game.attackWithSelectedUnit(tileUnit);
+                if (attacked && parentWindow != null) {
+                    int damageDone = initialHealth - tileUnit.getCurrentHealth();
+                    parentWindow.logUnitAttack(selectedUnit, tileUnit, damageDone);
+                    
+                    // Check if unit was destroyed
+                    if (tileUnit.getCurrentHealth() <= 0) {
+                        System.out.println("Unit destroyed in MapPanel.handleTileSelection");
+                        parentWindow.infoPanel.addToGameLog(tileUnit.getOwner().getName() + "'s " 
+                            + tileUnit.getType() + " was destroyed!");
+                            
+                        // Explicitly check victory condition here
+                        System.out.println("Explicitly checking victory condition after unit destroyed...");
+                        parentWindow.checkVictoryCondition();
+                    }
+                }
             }
             game.deselectUnit();
         }

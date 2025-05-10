@@ -3,8 +3,9 @@
 # Variables
 MAVEN = mvn
 JAVA = java
-MAIN_CLASS = wargame.GameTest
+MAIN_CLASS = wargame.Main
 TARGET_DIR = target/classes
+RESOURCES_DIR = src/main/resources
 
 # Default target
 .PHONY: all
@@ -19,8 +20,11 @@ clean:
 .PHONY: compile
 compile:
 	$(MAVEN) compile
+	@echo "Copying resources..."
+	@mkdir -p $(TARGET_DIR)
+	@cp -r $(RESOURCES_DIR)/* $(TARGET_DIR)/ 2>/dev/null || true
 
-# Run the test game
+# Run the game with menu
 .PHONY: run
 run: compile
 	$(JAVA) -cp $(TARGET_DIR) $(MAIN_CLASS)
@@ -48,12 +52,12 @@ build-run: clean compile run
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  all        - Clean and compile the project (default)"
-	@echo "  clean      - Clean the project"
-	@echo "  compile    - Compile the project"
-	@echo "  run        - Run the test game"
-	@echo "  package    - Create a JAR file"
-	@echo "  install    - Install in local Maven repository"
-	@echo "  test       - Run tests"
-	@echo "  build-run  - Clean, compile and run"
-	@echo "  help       - Show this help message" 
+	@echo "  all            - Clean and compile the project (default)"
+	@echo "  clean          - Clean the project"
+	@echo "  compile        - Compile the project"
+	@echo "  run            - Run the game with menu"
+	@echo "  package        - Create a JAR file"
+	@echo "  install        - Install in local Maven repository"
+	@echo "  test           - Run tests"
+	@echo "  build-run      - Clean, compile and run with menu"
+	@echo "  help           - Show this help message" 

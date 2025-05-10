@@ -77,3 +77,46 @@ Each terrain type has its own texture:
 Default images:
 - Unknown unit: ptInterrogation.png
 - Unknown terrain: grass01.png
+
+
+We need to implement the movement cost feature. Each movement will have a cost, depending on where the unit wants to go. Each unit has its own movement cost,
+that is manually determined in the UnitType file.
+
+## Next Steps for Wargame Project
+
+1. **Code Cleanup**
+   - Remove or reduce debug output statements now that the victory screen issue is fixed
+   - Standardize error handling throughout the codebase
+   - Consider adding proper JavaDoc comments for better documentation
+
+2. **Game Balance**
+   - Restore normal movement and attack values in UnitType.java (currently set to 999)
+   - Fine-tune unit stats for better gameplay balance
+   - Adjust terrain effects on movement and combat
+
+3. **UI Improvements**
+   - Add unit selection indicators
+   - Improve the visual feedback for valid moves and attacks
+   - Add animations for unit movement and combat
+   - Enhance the main menu with better styling
+
+4. **Gameplay Features**
+   - Implement unit recruitment/purchasing system using gold
+   - Add more unit types for greater strategic variety
+   - Create special abilities for different unit types
+   - Add objectives beyond simple elimination (e.g., capture points, king of the hill)
+
+5. **Technical Improvements**
+   - Implement proper save/load functionality
+   - Add game settings (sound, difficulty, etc.)
+   - Create AI for single-player mode
+   - Add network support for online multiplayer
+
+6. **Testing**
+   - Create comprehensive unit tests
+   - Perform playtesting for balance and fun factor
+   - Test edge cases in victory conditions
+
+7. **Documentation**
+   - Create a user manual
+   - Document the game architecture and design patterns used

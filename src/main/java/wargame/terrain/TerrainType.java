@@ -8,7 +8,7 @@ public enum TerrainType {
     FOREST(2, 1),
     MOUNTAIN(3, 2),
     WATER(4, 0),
-    ROAD(1, 0);
+    VILLAGE(1, 3);
 
     private final int movementCost;
     private final int defenseBonus;

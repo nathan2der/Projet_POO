@@ -5,11 +5,19 @@ package wargame.unit;
  * Each unit type has specific combat stats and movement capabilities.
  */
 public enum UnitType {
-    INFANTRY(12, 3, 4, 2, 1),     // Balanced unit
-    HEAVY_INFANTRY(20, 2, 6, 4, 1), // Strong but slow
-    CAVALRY(10, 4, 5, 1, 1),      // Fast and strong attack
-    ARCHER(8, 2, 4, 1, 3),        // Ranged attack
-    MAGE(8, 2, 5, 1, 3);          // Ranged attack with magic
+    // Original balanced values (commented for reference):
+    // INFANTRY(12, 3, 4, 2, 1),     // Balanced unit
+    // HEAVY_INFANTRY(20, 2, 6, 4, 1), // Strong but slow
+    // CAVALRY(10, 4, 5, 1, 1),      // Fast and strong attack
+    // ARCHER(8, 2, 4, 1, 3),        // Ranged attack
+    // MAGE(8, 2, 5, 1, 3);          // Ranged attack with magic
+    
+    // Modified values with "infinite" movement points:
+    INFANTRY(12, 999, 999, 2, 1),     // Balanced unit with infinite movement
+    HEAVY_INFANTRY(20, 999, 6, 4, 1), // Strong with infinite movement
+    CAVALRY(10, 999, 5, 1, 1),      // Strong attack with infinite movement
+    ARCHER(8, 999, 4, 1, 3),        // Ranged attack with infinite movement
+    MAGE(8, 999, 5, 1, 3);          // Magic with infinite movement
 
     private final int health;
     private final int movement;

@@ -108,13 +108,39 @@ public class InfoPanel extends JPanel {
             StringBuilder unitInfo = new StringBuilder();
             unitInfo.append("<html>");
             unitInfo.append("Type: ").append(selectedUnit.getType()).append("<br>");
-            unitInfo.append("Health: ").append(selectedUnit.getCurrentHealth())
-                   .append("/").append(selectedUnit.getType().getHealth()).append("<br>");
-            unitInfo.append("Movement: ").append(selectedUnit.getRemainingMovement())
-                   .append("/").append(selectedUnit.getType().getMovement()).append("<br>");
+            
+            // Health with color indication
+            int healthPercentage = selectedUnit.getCurrentHealth() * 100 / selectedUnit.getType().getHealth();
+            String healthColor = healthPercentage > 66 ? "green" : (healthPercentage > 33 ? "orange" : "red");
+            unitInfo.append("Health: <font color='").append(healthColor).append("'>")
+                   .append(selectedUnit.getCurrentHealth())
+                   .append("/").append(selectedUnit.getType().getHealth())
+                   .append("</font><br>");
+            
+            // Movement with status indication
+            String moveStatus = selectedUnit.hasMoved() ? " (Moved)" : " (Ready)";
+            unitInfo.append("Movement: <b>").append(selectedUnit.getRemainingMovement())
+                   .append("/").append(selectedUnit.getType().getMovement())
+                   .append("</b>").append(moveStatus).append("<br>");
+            
+            // Terrain info if on a tile
+            if (selectedUnit.getTile() != null) {
+                unitInfo.append("Terrain: ").append(selectedUnit.getTile().getTerrainType())
+                       .append(" (Def: +").append(selectedUnit.getTile().getTerrainType().getDefenseBonus())
+                       .append(", Move: ").append(selectedUnit.getTile().getTerrainType().getMovementCost())
+                       .append(")<br>");
+            }
+            
+            // Combat stats
             unitInfo.append("Attack: ").append(selectedUnit.getType().getAttack()).append("<br>");
             unitInfo.append("Defense: ").append(selectedUnit.getType().getDefense()).append("<br>");
             unitInfo.append("Range: ").append(selectedUnit.getType().getRange()).append("<br>");
+            
+            // Attack status
+            unitInfo.append("Status: ").append(selectedUnit.hasAttacked() ? 
+                           "<font color='red'>Has attacked</font>" : 
+                           "<font color='green'>Can attack</font>").append("<br>");
+            
             unitInfo.append("</html>");
             unitInfoLabel.setText(unitInfo.toString());
         } else {
@@ -122,8 +148,33 @@ public class InfoPanel extends JPanel {
         }
     }
 
-    public void addGameLogEntry(String entry) {
-        gameLog.append(entry + "\n");
+    /**
+     * Adds a message to the game log.
+     * @param message The message to add
+     */
+    public void addToGameLog(String message) {
+        gameLog.append("[Turn " + game.getTurnNumber() + "] " + message + "\n");
+        // Scroll to bottom
         gameLog.setCaretPosition(gameLog.getDocument().getLength());
+    }
+    
+    /**
+     * Adds a unit action to the game log with proper formatting.
+     * @param unit The unit performing the action
+     * @param action The action being performed
+     * @param details Additional details about the action
+     */
+    public void addUnitActionToLog(Unit unit, String action, String details) {
+        String playerName = unit.getOwner().getName();
+        String unitType = unit.getType().toString();
+        String message = playerName + "'s " + unitType + " " + action + " " + details;
+        addToGameLog(message);
+    }
+    
+    /**
+     * Clears the game log.
+     */
+    public void clearGameLog() {
+        gameLog.setText("");
     }
 } 

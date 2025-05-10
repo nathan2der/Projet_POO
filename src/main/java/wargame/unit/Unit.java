@@ -36,6 +36,9 @@ public class Unit {
         this.hasAttacked = false;
         this.hasMoved = false;
         this.turnsStationary = 0;
+        
+        // Automatically add this unit to the player's unit list
+        owner.addUnit(this);
     }
 
     /**
@@ -146,6 +149,10 @@ public class Unit {
 
         // Apply damage to target
         target.takeDamage(damage);
+        
+        // Set attacked flag
+        hasAttacked = true;
+        
         return true;
     }
 
@@ -164,6 +171,11 @@ public class Unit {
             baseDamage = (int) (baseDamage * critMultiplier);
         }
 
+        // Apply terrain defense bonus
+        int terrainDefenseBonus = target.getCurrentTile().getTerrainType().getDefenseBonus();
+        double terrainMultiplier = 1.0 - (terrainDefenseBonus * 0.1); // Each point reduces damage by 10%
+        baseDamage = (int)(baseDamage * terrainMultiplier);
+
         // Apply defense reduction
         baseDamage = Math.max(1, baseDamage - target.type.getDefense());
 
@@ -175,22 +187,41 @@ public class Unit {
      * @param damage The amount of damage to take
      */
     public void takeDamage(int damage) {
+        int previousHealth = currentHealth;
         currentHealth = Math.max(0, currentHealth - damage);
+        
+        System.out.println(owner.getName() + "'s " + type + " took " + damage + 
+                          " damage (health: " + previousHealth + " -> " + currentHealth + ")");
+        
         if (currentHealth == 0) {
+            System.out.println("UNIT DESTROYED: " + owner.getName() + "'s " + type);
             owner.removeUnit(this);
+            
+            // Debug output to show remaining units
+            System.out.println("  " + owner.getName() + " now has " + owner.getUnits().size() + " units left");
         }
     }
 
     /**
      * Resets the unit's state for a new turn.
      */
-    public void resetTurn() {
-        remainingMovement = type.getMovement();
+    public final void resetTurn() {
+        System.out.println("DEBUG: Unit.resetTurn() called for " + type + " owned by " + owner.getName());
+        System.out.println("  Before reset: movement=" + remainingMovement + "/" + type.getMovement());
+        
+        // Reset all status flags first
         hasAttacked = false;
         hasMoved = false;
-
+        
+        // Explicitly set movement points to the max value from the unit type
+        // This ensures we always get the correct max movement regardless of current state
+        remainingMovement = type.getMovement();
+        
+        System.out.println("  After reset: movement=" + remainingMovement + "/" + type.getMovement() 
+                          + ", hasMoved=" + hasMoved + ", hasAttacked=" + hasAttacked);
+        
         // Handle healing for stationary units
-        if (!hasMoved) {
+        if (turnsStationary > 0) {
             turnsStationary++;
             if (turnsStationary >= 2) {  // Start healing after 2 turns stationary
                 int maxHeal = (int) (type.getHealth() * MAX_HEAL_PERCENTAGE);
@@ -200,8 +231,6 @@ public class Unit {
                     currentHealth = Math.min(currentMaxHealth, currentHealth + healAmount);
                 }
             }
-        } else {
-            turnsStationary = 0;
         }
     }
 
@@ -220,7 +249,15 @@ public class Unit {
      * @return true if the move was successful
      */
     public boolean move(HexTile newTile, int movementCost) {
+        // Original implementation with movement point restrictions:
+        /*
         if (movementCost > remainingMovement || !newTile.isEmpty()) {
+            return false;
+        }
+        */
+        
+        // NEW IMPLEMENTATION: Allow movement regardless of movement points
+        if (!newTile.isEmpty()) {
             return false;
         }
         
@@ -230,9 +267,12 @@ public class Unit {
         
         newTile.setUnit(this);
         currentTile = newTile;
-        remainingMovement -= movementCost;
+        
+        // Still deduct movement points to track that the unit moved
+        // But cap at 0 to prevent negative movement
+        remainingMovement = Math.max(0, remainingMovement - movementCost);
         hasMoved = true;
-        turnsStationary = 0;
+        turnsStationary = 0;  // Reset stationary turns when moving
         return true;
     }
 
@@ -257,6 +297,8 @@ public class Unit {
     }
 
     public boolean move(HexTile destination) {
+        // Original implementation with movement point restrictions:
+        /*
         if (destination == null || destination.getUnit() != null) {
             return false;
         }
@@ -271,11 +313,48 @@ public class Unit {
         currentTile = destination;
         remainingMovement -= distance;
         hasMoved = true;
-        turnsStationary = 0;
+        turnsStationary = 0;  // Reset stationary turns when moving
+        return true;
+        */
+        
+        // NEW IMPLEMENTATION: Allow movement to any empty tile
+        if (destination == null || destination.getUnit() != null) {
+            return false;
+        }
+
+        int distance = currentTile.getMap().getDistance(currentTile, destination);
+        
+        currentTile.setUnit(null);
+        destination.setUnit(this);
+        currentTile = destination;
+        
+        // Still deduct movement points to track that the unit moved
+        // But cap at 0 to prevent negative movement
+        remainingMovement = Math.max(0, remainingMovement - 1);
+        hasMoved = true;
+        turnsStationary = 0;  // Reset stationary turns when moving
+        
+        System.out.println("Moved unit with unlimited movement (distance: " + distance + ")");
         return true;
     }
 
-    public void resetMovementPoints() {
+    /**
+     * Explicitly resets movement points to their maximum value.
+     * This method is an alternative to the full resetTurn and focuses only on movement.
+     */
+    public final void resetMovementPoints() {
+        System.out.println("DEBUG: Unit.resetMovementPoints() explicit call for " + type);
+        System.out.println("  Before reset: movement=" + remainingMovement + "/" + type.getMovement() 
+                          + ", hasMoved=" + hasMoved + ", hasAttacked=" + hasAttacked);
+        
+        // Reset movement points
         remainingMovement = type.getMovement();
+        
+        // Also reset movement flags for consistency
+        hasMoved = false;
+        hasAttacked = false;
+        
+        System.out.println("  After reset: movement=" + remainingMovement + "/" + type.getMovement()
+                          + ", hasMoved=" + hasMoved + ", hasAttacked=" + hasAttacked);
     }
 } 

@@ -82,8 +82,8 @@ public class Player {
         int cost = calculateUnitCost(type);
         if (gold >= cost) {
             gold -= cost;
+            // Create the unit - it will be added to the player's list in the Unit constructor
             Unit unit = new Unit(type, this);
-            units.add(unit);
             return unit;
         }
         return null;
@@ -106,8 +106,47 @@ public class Player {
      * Resets all units for a new turn.
      */
     public void resetTurn() {
-        for (Unit unit : units) {
-            unit.resetTurn();
+        System.out.println("Player.resetTurn called for " + name + " with " + units.size() + " units");
+        
+        // Use a copy to avoid potential concurrent modification issues
+        List<Unit> unitsCopy = new ArrayList<>(units);
+        
+        // Reset all units
+        for (Unit unit : unitsCopy) {
+            try {
+                System.out.println("Resetting unit " + unit.getType() + " (from Player.resetTurn)");
+                
+                // First try the standard reset method
+                unit.resetTurn();
+                
+                // Verify reset was successful
+                if (unit.getRemainingMovement() < unit.getType().getMovement() || 
+                    unit.hasMoved() || unit.hasAttacked()) {
+                    
+                    System.out.println("WARNING: Unit not properly reset via resetTurn, trying resetMovementPoints");
+                    unit.resetMovementPoints();
+                    
+                    // Final check - if it's still not reset, use direct method calls
+                    if (unit.getRemainingMovement() < unit.getType().getMovement() || 
+                        unit.hasMoved() || unit.hasAttacked()) {
+                        
+                        System.out.println("CRITICAL: Multiple reset methods failed, using direct setter methods");
+                        unit.setRemainingMovement(unit.getType().getMovement());
+                        unit.setHasMoved(false);
+                        unit.setHasAttacked(false);
+                    }
+                }
+                
+                // Verify final state
+                System.out.println("Final unit state: movement=" + unit.getRemainingMovement() + 
+                                   "/" + unit.getType().getMovement() + 
+                                   ", hasMoved=" + unit.hasMoved() + 
+                                   ", hasAttacked=" + unit.hasAttacked());
+            } catch (Exception e) {
+                // Catch any exceptions during reset to prevent a single unit from breaking the turn reset
+                System.err.println("ERROR: Exception during unit reset: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
