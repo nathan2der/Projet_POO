@@ -38,33 +38,10 @@ mvn -version
    ```bash
    mvn clean package
    ```
-ou plus simplement "make build-run"
+ou plus simplement "make build-run" dans ~/Projet_POO
 
 3. Exécuter le jeu
    ```bash
    java -jar target/wargame-1.0-SNAPSHOT.jar
    ```
-ou plus simplement "make build-run"
-
-## Liste des Tâches à Faire (TODO)
-
-### Priorité Haute
-- Équilibrer les statistiques des unités
-- Améliorer le feedback visuel des mouvements
-- Compléter l'implémentation du système de sauvegarde/chargement
-- Implémenter les bonus de terrain dans le combat
-- Optimiser le placement des unités au départ
-
-### Priorité Moyenne
-- Améliorer la génération aléatoire de terrain
-- Implémenter l'économie du jeu
-- Ajouter des animations de combat
-- Ajouter des tooltips pour les unités et terrains
-- Implémenter l'auto-sauvegarde
-
-### Priorité Basse
-- Compléter la documentation Javadoc
-- Ajouter des tests unitaires
-- Créer un guide utilisateur
-- Ajouter des effets sonores
-- Implémenter un système d'expérience pour les unités
+ou plus simplement "make build-run" dans ~/Projet_POO
