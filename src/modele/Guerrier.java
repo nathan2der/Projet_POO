@@ -1,0 +1,58 @@
+package modele;
+
+import controleur.Jeu;
+
+/**
+ * Guerrier est la classe représentant une unité de Guerrier. Ses caractéristiques sont :
+ * <ul>
+ * <li>Attaque : 18</li>
+ * <li>Défense : 10</li>
+ * <li>PV : 46</li>
+ * <li>Déplacement : 3</li>
+ * <li>Vision : 2</li>
+ * <li>Portée : 1</li>
+ * </ul>
+ * @author Solenn
+ * @see Unite
+ *
+ */
+public class Guerrier extends Unite {
+    /**
+     * Valeur de l'attaque du Guerrier.
+     */
+    private static final int ATTAQUE = 18;
+    /**
+     * Valeur de la défense du Guerrier.
+     */
+    private static final int DEFENSE = 10;
+    /**
+     * Valeur des PV du Guerrier.
+     */
+    private static final int PV = 46;
+    /**
+     * Valeur du déplacement du Guerrier.
+     */
+    private static final int DEPLACEMENT = 3;
+    /**
+     * Valeur de la vision du Guerrier.
+     */
+    private static final int VISION = 2;
+    /**
+     * Valeur de la portée du Guerrier.
+     */
+    private static final int PORTEE = 1;
+
+    /**
+     * Constructeur Guerrier avec ses constantes.
+     * @param equipe
+     *      Le numéro du joueur associé à cette unité.
+     * @param x
+     *      Le numéro de ligne de l'unité.
+     * @param y
+     *      Le numéro de colonne de l'unité.
+     */
+    public Guerrier(final int equipe, final int x, final int y) {
+        super(Jeu.GUERRIER, ATTAQUE, DEFENSE, PV, DEPLACEMENT, VISION, PORTEE, x, y, equipe);
+    }
+
+}
