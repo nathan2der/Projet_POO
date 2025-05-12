@@ -42,6 +42,8 @@ public class MapPanel extends JPanel {
     private static final int ZOOM_SPEED = 1;
     private double zoomFactor = 1.0;
     private boolean isNavigating = false;
+    private static final double MIN_ZOOM = 1.0; // Minimum zoom (current scale)
+    private static final double MAX_ZOOM = 2.0; // Maximum zoom
 
     static {
         // Preload all unit images
@@ -79,20 +81,15 @@ public class MapPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     // Left click for navigation or tile selection
-                    /* Navigation code commented out
                     lastMousePosition = e.getPoint();
                     isNavigating = true;
                     setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                    */
-                    // Only handle tile selection
-                    handleTileClick(e.getX(), e.getY());
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    /* Navigation code commented out
                     if (isNavigating && !isPanning) {
                         // If we didn't pan, it was a click for tile selection
                         handleTileClick(e.getX(), e.getY());
@@ -100,13 +97,11 @@ public class MapPanel extends JPanel {
                     isNavigating = false;
                     isPanning = false;
                     setCursor(Cursor.getDefaultCursor());
-                    */
                 }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                /* Navigation code commented out
                 if (isNavigating && lastMousePosition != null) {
                     int dx = e.getX() - lastMousePosition.x;
                     int dy = e.getY() - lastMousePosition.y;
@@ -117,9 +112,23 @@ public class MapPanel extends JPanel {
                     }
                     
                     if (isPanning) {
-                        // Update offsets
-                        offsetX += dx * PAN_SPEED;
-                        offsetY += dy * PAN_SPEED;
+                        // Calculate new offsets
+                        int newOffsetX = offsetX + dx * PAN_SPEED;
+                        int newOffsetY = offsetY + dy * PAN_SPEED;
+                        
+                        // Calculate map bounds
+                        double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
+                        double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
+                        double mapWidth = map.getWidth() * hexWidth * 0.75;
+                        double mapHeight = map.getHeight() * hexHeight;
+                        
+                        // Calculate bounds for panning
+                        int minOffsetX = (int)(getWidth() - mapWidth);
+                        int minOffsetY = (int)(getHeight() - mapHeight);
+                        
+                        // Apply bounds checking
+                        offsetX = Math.min(0, Math.max(minOffsetX, newOffsetX));
+                        offsetY = Math.min(0, Math.max(minOffsetY, newOffsetY));
                         
                         // Update last position
                         lastMousePosition = e.getPoint();
@@ -128,22 +137,36 @@ public class MapPanel extends JPanel {
                         repaint();
                     }
                 }
-                */
             }
         };
 
         // Add mouse wheel listener for zooming
-        /* Zoom code commented out
         addMouseWheelListener(e -> {
             double oldZoom = zoomFactor;
             zoomFactor += e.getWheelRotation() * 0.1 * ZOOM_SPEED;
-            zoomFactor = Math.max(0.5, Math.min(2.0, zoomFactor)); // Limit zoom range
+            zoomFactor = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomFactor)); // Limit zoom range
             
             if (zoomFactor != oldZoom) {
+                // Recalculate offsets to keep the center point stable
+                double zoomRatio = zoomFactor / oldZoom;
+                offsetX = (int)((offsetX - getWidth()/2) * zoomRatio + getWidth()/2);
+                offsetY = (int)((offsetY - getHeight()/2) * zoomRatio + getHeight()/2);
+                
+                // Ensure we don't pan outside the map after zooming
+                double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
+                double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
+                double mapWidth = map.getWidth() * hexWidth * 0.75;
+                double mapHeight = map.getHeight() * hexHeight;
+                
+                int minOffsetX = (int)(getWidth() - mapWidth);
+                int minOffsetY = (int)(getHeight() - mapHeight);
+                
+                offsetX = Math.min(0, Math.max(minOffsetX, offsetX));
+                offsetY = Math.min(0, Math.max(minOffsetY, offsetY));
+                
                 repaint();
             }
         });
-        */
 
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
@@ -159,10 +182,8 @@ public class MapPanel extends JPanel {
         double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
         double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
 
-        /* Navigation offset code commented out
         // Apply offsets
         g2d.translate(offsetX, offsetY);
-        */
 
         // Draw each hex tile
         for (int x = 0; x < map.getWidth(); x++) {
@@ -172,10 +193,8 @@ public class MapPanel extends JPanel {
             }
         }
 
-        /* Navigation offset reset code commented out
         // Reset transform
         g2d.translate(-offsetX, -offsetY);
-        */
     }
 
     private void drawHexTile(Graphics2D g2d, HexTile tile, int x, int y, double hexWidth, double hexHeight) {
@@ -394,15 +413,9 @@ public class MapPanel extends JPanel {
         double hexWidth = getWidth() / (map.getWidth() * 0.75 + 0.25) * zoomFactor;
         double hexHeight = getHeight() / (map.getHeight() + 0.5) * zoomFactor;
         
-        /* Navigation offset adjustment code commented out
         // Adjust mouse coordinates for offset and zoom
         double adjustedX = (mouseX - offsetX) / zoomFactor;
         double adjustedY = (mouseY - offsetY) / zoomFactor;
-        */
-        
-        // Use direct mouse coordinates since navigation is disabled
-        double adjustedX = mouseX / zoomFactor;
-        double adjustedY = mouseY / zoomFactor;
         
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
