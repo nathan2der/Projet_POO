@@ -122,17 +122,19 @@ public class Game {
     public List<HexTile> getValidSpawnPositions(Player player) {
         List<HexTile> validPositions = new ArrayList<>();
         
-        // Determine spawn area based on player
-        int startX, endX;
-        if (player == turnManager.getPlayers().get(0)) {
-            // First player spawns on the left
-            startX = 0;
-            endX = gameMap.getWidth() / 3;
-        } else {
-            // Second player spawns on the right
-            startX = (gameMap.getWidth() * 2) / 3;
-            endX = gameMap.getWidth();
-        }
+            int playerIndex = turnManager.getPlayers().indexOf(player);
+    int startX, endX;
+
+    if (playerIndex == 0) {
+        startX = 0;
+        endX = gameMap.getWidth() / 3;
+    } else if (playerIndex == 1) {
+        startX = (gameMap.getWidth() * 2) / 3;
+        endX = gameMap.getWidth();
+    } else {
+        startX = gameMap.getWidth() / 3;
+        endX = (gameMap.getWidth() * 2) / 3;
+    }
 
         // Check each position in the spawn area
         for (int x = startX; x < endX; x++) {
