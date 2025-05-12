@@ -1,19 +1,32 @@
 package wargame.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import wargame.game.Game;
 import wargame.map.GameMap;
 import wargame.player.Player;
-import wargame.player.AIPlayer;
+import wargame.terrain.TerrainType;
 import wargame.unit.Unit;
 import wargame.unit.UnitType;
-import wargame.terrain.TerrainType;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainMenu extends JFrame {
     private static final int WINDOW_WIDTH = 800;
@@ -173,15 +186,162 @@ public class MainMenu extends JFrame {
     }
 
     private void showRules() {
-        // Code inchangé
+        JDialog rulesDialog = new JDialog(this, "Game Rules", true);
+        rulesDialog.setLayout(new BorderLayout());
+        
+        // Create a text area with the rules
+        JTextArea rulesText = new JTextArea();
+        rulesText.setEditable(false);
+        rulesText.setLineWrap(true);
+        rulesText.setWrapStyleWord(true);
+        rulesText.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        // Set rules content
+        String rules = """
+            WARGAME RULES
+            
+            1. Game Overview:
+            - Turn-based strategy game on a hexagonal grid
+            - Each player controls an army of different unit types
+            - Goal: Eliminate all enemy units
+            
+            2. Unit Types:
+            - Infantry: Basic unit, balanced stats
+            - Heavy Infantry: Strong defense, slow movement
+            - Cavalry: Fast movement, good attack
+            - Archer: Ranged attack, weak defense
+            - Mage: Powerful attack, very weak defense
+            
+            3. Movement:
+            - Each unit has movement points
+            - Different terrain types have different movement costs
+            - Units can't move through occupied tiles
+            
+            4. Combat:
+            - Units can attack adjacent enemies
+            - Archers and Mages can attack from range
+            - Combat is resolved automatically based on unit stats
+            
+            5. Terrain Types:
+            - Plains: Normal movement cost
+            - Forest: Increased movement cost
+            - Mountain: High movement cost
+            - Water: Impassable
+            - Village: Provides healing
+            
+            6. Game Flow:
+            - Players take turns moving and attacking
+            - Units regain movement points at the start of their turn
+            - Game ends when one player loses all units
+            """;
+        
+        rulesText.setText(rules);
+        
+        // Add scroll pane
+        JScrollPane scrollPane = new JScrollPane(rulesText);
+        scrollPane.setPreferredSize(new Dimension(600, 400));
+        
+        // Add close button
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> rulesDialog.dispose());
+        
+        // Apply theme
+        if (darkMode) {
+            rulesDialog.getContentPane().setBackground(new Color(43, 43, 43));
+            rulesText.setBackground(new Color(60, 60, 60));
+            rulesText.setForeground(Color.WHITE);
+            closeButton.setBackground(new Color(60, 60, 60));
+            closeButton.setForeground(Color.WHITE);
+        }
+        
+        // Add components to dialog
+        rulesDialog.add(scrollPane, BorderLayout.CENTER);
+        rulesDialog.add(closeButton, BorderLayout.SOUTH);
+        
+        // Show dialog
+        rulesDialog.pack();
+        rulesDialog.setLocationRelativeTo(this);
+        rulesDialog.setVisible(true);
     }
 
     private void showSettings() {
-        // Code inchangé
+        JDialog settingsDialog = new JDialog(this, "Settings", true);
+        settingsDialog.setLayout(new BorderLayout());
+        
+        // Create settings panel
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS));
+        settingsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Dark mode toggle
+        JCheckBox darkModeCheckBox = new JCheckBox("Dark Mode");
+        darkModeCheckBox.setSelected(darkMode);
+        darkModeCheckBox.addActionListener(e -> {
+            darkMode = darkModeCheckBox.isSelected();
+            applyTheme();
+            settingsDialog.dispose();
+        });
+        
+        // Apply theme to settings dialog
+        if (darkMode) {
+            settingsDialog.getContentPane().setBackground(new Color(43, 43, 43));
+            settingsPanel.setBackground(new Color(43, 43, 43));
+            darkModeCheckBox.setBackground(new Color(43, 43, 43));
+            darkModeCheckBox.setForeground(Color.WHITE);
+        }
+        
+        // Add components
+        settingsPanel.add(darkModeCheckBox);
+        settingsDialog.add(settingsPanel, BorderLayout.CENTER);
+        
+        // Add close button
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> settingsDialog.dispose());
+        if (darkMode) {
+            closeButton.setBackground(new Color(60, 60, 60));
+            closeButton.setForeground(Color.WHITE);
+        }
+        settingsDialog.add(closeButton, BorderLayout.SOUTH);
+        
+        // Show dialog
+        settingsDialog.pack();
+        settingsDialog.setLocationRelativeTo(this);
+        settingsDialog.setVisible(true);
     }
 
     private void applyTheme() {
-        // Code inchangé
+        // Apply dark mode to main window
+        if (darkMode) {
+            getContentPane().setBackground(new Color(43, 43, 43));
+            setBackground(new Color(43, 43, 43));
+        } else {
+            getContentPane().setBackground(Color.WHITE);
+            setBackground(Color.WHITE);
+        }
+        
+        // Update all components
+        for (Component comp : getContentPane().getComponents()) {
+            if (comp instanceof JPanel) {
+                JPanel panel = (JPanel) comp;
+                panel.setBackground(darkMode ? new Color(43, 43, 43) : Color.WHITE);
+                
+                // Update all components in the panel
+                for (Component panelComp : panel.getComponents()) {
+                    if (panelComp instanceof JLabel) {
+                        JLabel label = (JLabel) panelComp;
+                        label.setForeground(darkMode ? Color.WHITE : Color.BLACK);
+                    } else if (panelComp instanceof JButton) {
+                        JButton button = (JButton) panelComp;
+                        button.setBackground(darkMode ? new Color(60, 60, 60) : null);
+                        button.setForeground(darkMode ? Color.WHITE : null);
+                        button.setBorder(BorderFactory.createLineBorder(darkMode ? new Color(100, 100, 100) : null));
+                    }
+                }
+            }
+        }
+        
+        // Repaint the window
+        repaint();
     }
 
     public static boolean isDarkMode() {
