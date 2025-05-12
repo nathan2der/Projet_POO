@@ -1,27 +1,19 @@
 package wargame.ui;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-
 import wargame.game.Game;
 import wargame.map.GameMap;
 import wargame.player.Player;
-import wargame.terrain.TerrainType;
+import wargame.player.AIPlayer;
 import wargame.unit.Unit;
 import wargame.unit.UnitType;
+import wargame.terrain.TerrainType;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainMenu extends JFrame {
     private static final int WINDOW_WIDTH = 800;
@@ -113,7 +105,7 @@ public class MainMenu extends JFrame {
             players.add(new Player(name));
         }
 
-        GameMap map = new GameMap(50, 30);
+        GameMap map = new GameMap(20, 15);
         for (int i = 0; i < players.size(); i++) {
             generateRandomArmy(players.get(i), map, i);
         }
