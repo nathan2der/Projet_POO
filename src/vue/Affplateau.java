@@ -2,10 +2,12 @@ package vue;
 
 import controleur.Jeu;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.AlphaComposite;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -147,6 +149,14 @@ public class Affplateau extends JPanel {
                 g2d.setColor(new Color(53, 196, 39));
                 g2d.draw(poly);
                 g2d.drawImage(bim, c * r.width, (int) (l * COTE * 1.5), this);
+                
+                // Ajout de l'affichage des points de mouvement
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Arial", Font.BOLD, 12));
+                String mvtPoints = String.valueOf(Jeu.getMap()[l][c].getCoutDeDeplacement());
+                int textX = c * r.width + r.width/2 - 5;
+                int textY = (int)(l * COTE * 1.5) + COTE;
+                g2d.drawString(mvtPoints, textX, textY);
             }
         }
         for (int l = 1; l < Jeu.MAPLIGNE; l = l + 2) {
@@ -204,6 +214,14 @@ public class Affplateau extends JPanel {
                 g2d.setColor(new Color(53, 196, 39));
                 g2d.draw(poly);
                 g2d.drawImage(bim, c * r.width + r.width / 2, (int) (l * COTE * 1.5 + 0.5), this);
+                
+                // Ajout de l'affichage des points de mouvement pour les lignes impaires
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Arial", Font.BOLD, 12));
+                String mvtPoints = String.valueOf(Jeu.getMap()[l][c].getCoutDeDeplacement());
+                int textX = c * r.width + r.width - 5;
+                int textY = (int)(l * COTE * 1.5) + COTE;
+                g2d.drawString(mvtPoints, textX, textY);
             }
         }
         for (ArrayList<Integer> listeUnite : Jeu.getInfoUnite()) {
@@ -232,13 +250,15 @@ public class Affplateau extends JPanel {
             }
             if (bim != null) {
                 g2d = (Graphics2D) graph;
+                
+                // Draw the unit
                 if (listeUnite.get(2) % 2 == 0) {
                     if (listeUnite.get(1) == 2) {
                         g2d.drawImage(bim, listeUnite.get(3) * r.width + 5, (int) (listeUnite.get(2) * COTE * 1.5),
                                 this);
                     } else {
                         g2d.drawImage(bim, listeUnite.get(3) * r.width + 5, (int) (listeUnite.get(2) * COTE * 1.5) + 7,
-                                this);// +7 pour recentrer l'image
+                                this);
                     }
                 } else {
                     if (listeUnite.get(1) == 2) {
@@ -249,12 +269,59 @@ public class Affplateau extends JPanel {
                                 (int) (listeUnite.get(2) * COTE * 1.5 + 0.5) + 7, this);
                     }
                 }
+
+                // Add highlight effect for current team's units
+                if (listeUnite.get(0) == Jeu.getTurn()) {
+                    Polygon highlightPoly;
+                    if (listeUnite.get(2) % 2 == 0) {
+                        highlightPoly = getPolygon(listeUnite.get(3) * r.width,
+                                (int) (listeUnite.get(2) * COTE * 1.5), COTE);
+                    } else {
+                        highlightPoly = getPolygon(listeUnite.get(3) * r.width + r.width / 2,
+                                (int) (listeUnite.get(2) * COTE * 1.5 + 0.5), COTE);
+                    }
+                    
+                    // Save the current composite
+                    AlphaComposite oldComposite = (AlphaComposite) g2d.getComposite();
+                    
+                    // Set semi-transparent yellow for highlight
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+                    g2d.setColor(Color.YELLOW);
+                    g2d.fill(highlightPoly);
+                    
+                    // Restore the original composite
+                    g2d.setComposite(oldComposite);
+                }
+                
                 repaint();
             }
         }
         Polygon poly = null;
 
-       
+        // Draw fog of war
+        if (Jeu.getBrouillard() != null && !Jeu.getBrouillard().isEmpty()) {
+            // Save the current composite
+            AlphaComposite oldComposite = (AlphaComposite) g2d.getComposite();
+            
+            // Set semi-transparent dark overlay for fog
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+            g2d.setColor(new Color(0, 0, 0));
+            
+            for (ArrayList<Integer> brouillard : Jeu.getBrouillard()) {
+                Polygon fogPoly;
+                if (brouillard.get(0) % 2 == 0) {
+                    fogPoly = getPolygon(brouillard.get(1) * r.width,
+                            (int) (brouillard.get(0) * COTE * 1.5), COTE);
+                } else {
+                    fogPoly = getPolygon(brouillard.get(1) * r.width + r.width / 2,
+                            (int) (brouillard.get(0) * COTE * 1.5 + 0.5), COTE);
+                }
+                g2d.fill(fogPoly);
+            }
+            
+            // Restore the original composite
+            g2d.setComposite(oldComposite);
+        }
 
         if (Jeu.getDeplacementPossible() != null) {
             for (ArrayList<Integer> deplacementPossible : Jeu.getDeplacementPossible()) {

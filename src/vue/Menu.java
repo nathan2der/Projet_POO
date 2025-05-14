@@ -174,6 +174,16 @@ public class Menu {
         menuPanel.add(loadButton);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(rulesButton);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        // Add quit button
+        JButton quitButton = createStyledButton("QUITTER");
+        quitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+        menuPanel.add(quitButton);
 
         // Center the menu panel
         sl_panel.putConstraint(SpringLayout.HORIZONTAL_CENTER, menuPanel, 0, SpringLayout.HORIZONTAL_CENTER, panel);
