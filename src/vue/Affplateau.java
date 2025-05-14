@@ -1,13 +1,18 @@
 package vue;
 
 import controleur.Jeu;
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.AlphaComposite;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +60,123 @@ public class Affplateau extends JPanel {
      * Windows.
      */
     private String separateur = System.getProperty("file.separator");
+    
+    /**
+     * Variables pour le panoramique de la carte
+     */
+    private int decalageX = 0; // Décalage horizontal pour le panoramique
+    private int decalageY = 0; // Décalage vertical pour le panoramique
+    private int minDecalageX = 0; // Limite minimale du décalage horizontal
+    private int maxDecalageX = 0; // Limite maximale du décalage horizontal
+    private int minDecalageY = 0; // Limite minimale du décalage vertical
+    private int maxDecalageY = 0; // Limite maximale du décalage vertical
+    private Point pointDepart; // Point de départ pour le panoramique
+    private boolean enDeplacement = false; // Indique si la carte est en cours de déplacement
+    private int largeurTotale = 0; // Largeur totale de la carte
+    private int hauteurTotale = 0; // Hauteur totale de la carte
 
+    /**
+     * Constructeur de la classe Affplateau.
+     * Initialise les écouteurs de souris pour le panoramique.
+     */
+    public Affplateau() {
+        // Ajouter les écouteurs de souris pour le panoramique
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                // Vérifier si c'est un clic gauche
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    pointDepart = e.getPoint();
+                    enDeplacement = true;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                }
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // Fin du panoramique
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    enDeplacement = false;
+                    setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        });
+        
+        this.addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // Déplacement de la carte si le panoramique est actif
+                if (enDeplacement) {
+                    int dx = e.getX() - pointDepart.x;
+                    int dy = e.getY() - pointDepart.y;
+                    
+                    // Calcul des nouveaux offsets en respectant les limites
+                    int nouveauDecalageX = decalageX + dx;
+                    int nouveauDecalageY = decalageY + dy;
+                    
+                    // Mise à jour des limites du panoramique
+                    mettreAJourLimitesPanoramique();
+                    
+                    // Application des limites
+                    if (nouveauDecalageX < minDecalageX) nouveauDecalageX = minDecalageX;
+                    if (nouveauDecalageX > maxDecalageX) nouveauDecalageX = maxDecalageX;
+                    if (nouveauDecalageY < minDecalageY) nouveauDecalageY = minDecalageY;
+                    if (nouveauDecalageY > maxDecalageY) nouveauDecalageY = maxDecalageY;
+                    
+                    decalageX = nouveauDecalageX;
+                    decalageY = nouveauDecalageY;
+                    
+                    pointDepart = e.getPoint();
+                    repaint();
+                }
+            }
+            
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                // Non utilisé
+            }
+        });
+    }
+    
+    /**
+     * Met à jour les limites du panoramique en fonction de la taille de la carte et de la fenêtre.
+     * Cette méthode calcule les valeurs minimales et maximales pour les décalages X et Y
+     * afin d'empêcher l'utilisateur de naviguer en dehors des limites de la carte.
+     */
+    private void mettreAJourLimitesPanoramique() {
+        // Calculer la taille totale de la carte
+        Polygon hexagone = getPolygon(0, 0, COTE);
+        Rectangle r = hexagone.getBounds();
+        
+        // Calculer la largeur et la hauteur totales de la carte
+        largeurTotale = Jeu.MAPCOLONNE * r.width + r.width / 2;
+        hauteurTotale = (int) (Jeu.MAPLIGNE * COTE * 1.5 + COTE);
+        
+        // Définir les limites du panoramique
+        // La limite minimale (valeur négative la plus grande en valeur absolue) permet de déplacer la carte vers la droite/bas
+        // La limite maximale (0) empêche de déplacer la carte trop loin vers la gauche/haut
+        minDecalageX = Math.min(0, getWidth() - largeurTotale);
+        minDecalageY = Math.min(0, getHeight() - hauteurTotale);
+        maxDecalageX = 0;
+        maxDecalageY = 0;
+    }
+    
+    /**
+     * Retourne le décalage horizontal actuel du panoramique.
+     * @return le décalage horizontal
+     */
+    public int getDecalageX() {
+        return decalageX;
+    }
+    
+    /**
+     * Retourne le décalage vertical actuel du panoramique.
+     * @return le décalage vertical
+     */
+    public int getDecalageY() {
+        return decalageY;
+    }
+    
     /**
      * Retourne un hexagone.
      * @param x Coordonée x du point de départ.
@@ -92,6 +213,12 @@ public class Affplateau extends JPanel {
         g2d = (Graphics2D) graph;
         this.graph = graph;
         bim = null;
+        
+        // Mise à jour des limites du panoramique avant de dessiner
+        mettreAJourLimitesPanoramique();
+        
+        // Application de la translation pour le panoramique
+        g2d.translate(decalageX, decalageY);
         for (int l = 0; l < Jeu.MAPLIGNE; l = l + 2) { // Remarquer le "+2" car la grille est constituées de 2 sous
                                                       // grilles (les lignes impaires sont décallées)
             for (int c = 0; c < Jeu.MAPCOLONNE; c++) {

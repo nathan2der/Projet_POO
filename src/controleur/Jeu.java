@@ -435,8 +435,15 @@ public final class Jeu {
         int hX = -1;
         int hY = -1;
         mouse = Jeu.getFrame().getClicPos();
-        int X = mouse.y;
-        int Y = mouse.x;
+        
+        // Récupérer les décalages du panoramique
+        int decalageX = plateau.getDecalageX();
+        int decalageY = plateau.getDecalageY();
+        
+        // Ajuster les coordonnées de la souris en fonction du décalage du panoramique
+        int X = mouse.y - decalageY;
+        int Y = mouse.x - decalageX;
+        
         find: for (int ligne = 0; ligne < Jeu.MAPLIGNE; ligne++) {
             for (int colonne = 0; colonne < Jeu.MAPCOLONNE; colonne++) {
                 int refX = 30 + 45 * ligne;
