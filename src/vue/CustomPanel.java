@@ -48,9 +48,7 @@ public class CustomPanel extends JPanel {
         super.paintComponent(g);
         setBackground(new Color(0, 128, 128));
         if (image != null) {
-            int x = this.getParent().getWidth() / 2 - width;
-            int y = this.getParent().getHeight() / 2 - height;
-            g.drawImage(image, x, y, this);
+            g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
         }
     }
 }

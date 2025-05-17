@@ -55,7 +55,7 @@ public class Menu {
      * Initialise le contenu de la fenêtre.
      */
     private void initialize() {
-        Dimension size = new Dimension(1300, 700);
+        Dimension size = new Dimension(1500, 900);
         frame = new JFrame("Wargame");
         frame.setBounds(100, 30, 1300, 700);
         frame.setLayout(new BorderLayout());
@@ -70,8 +70,7 @@ public class Menu {
         Image imagefond = null;
         try {
             imagefond = ImageIO.read(new File("images/war.jpg"));
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e) {e.printStackTrace();
             System.exit(-1);
         }
 
@@ -87,11 +86,11 @@ public class Menu {
 
         // Title
         JLabel titleLabel = new JLabel("WARGAME");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 48));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 120));
+        titleLabel.setForeground(Color.RED);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(titleLabel);
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 60)));
 
         // Player selection panel
         JPanel playerSelectionPanel = new JPanel();
@@ -103,8 +102,9 @@ public class Menu {
         totalPlayersPanel.setOpaque(false);
         JLabel totalPlayersLabel = new JLabel("Nombre total de joueurs: ");
         totalPlayersLabel.setForeground(Color.WHITE);
+        totalPlayersLabel.setFont(new Font("Arial", Font.BOLD, 50));
         totalPlayersCombo = new JComboBox<>(new Integer[]{2, 3});
-        totalPlayersCombo.setPreferredSize(new Dimension(80, 30));
+        totalPlayersCombo.setPreferredSize(new Dimension(90, 50));
         totalPlayersPanel.add(totalPlayersLabel);
         totalPlayersPanel.add(totalPlayersCombo);
 
@@ -113,8 +113,9 @@ public class Menu {
         aiPlayersPanel.setOpaque(false);
         JLabel aiPlayersLabel = new JLabel("Nombre de joueurs IA: ");
         aiPlayersLabel.setForeground(Color.WHITE);
+        aiPlayersLabel.setFont(new Font("Arial", Font.BOLD, 50));
         aiPlayersCombo = new JComboBox<>(new Integer[]{0, 1});
-        aiPlayersCombo.setPreferredSize(new Dimension(80, 30));
+        aiPlayersCombo.setPreferredSize(new Dimension(90, 50));
         aiPlayersPanel.add(aiPlayersLabel);
         aiPlayersPanel.add(aiPlayersCombo);
 
@@ -130,12 +131,12 @@ public class Menu {
         playerSelectionPanel.add(totalPlayersPanel);
         playerSelectionPanel.add(aiPlayersPanel);
         menuPanel.add(playerSelectionPanel);
-        menuPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 80)));
 
         // Create buttons with consistent styling
         JButton playButton = createStyledButton("JOUER");
         JButton loadButton = createStyledButton("CHARGER PARTIE");
-        JButton rulesButton = createStyledButton("RÈGLES");
+        JButton rulesButton = createStyledButton("RÈGLES DU JEU");
 
         // Play button action
         playButton.addActionListener(new ActionListener() {
