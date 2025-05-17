@@ -430,22 +430,36 @@ public class Affplateau extends JPanel {
             // Save the current composite
             AlphaComposite oldComposite = (AlphaComposite) g2d.getComposite();
             
-            // Set semi-transparent dark overlay for fog
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            g2d.setColor(new Color(0, 0, 0));
+            // Charger l'image du brouillard
+            BufferedImage brouillardImg = null;
+            try {
+                brouillardImg = ImageIO.read(new File("images/brouillard.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
             
             for (ArrayList<Integer> brouillard : Jeu.getBrouillard()) {
                 Polygon fogPoly;
+                int drawX, drawY;
                 if (brouillard.get(0) % 2 == 0) {
-                    fogPoly = getPolygon(brouillard.get(1) * r.width,
-                            (int) (brouillard.get(0) * COTE * 1.5), COTE);
+                    drawX = brouillard.get(1) * r.width;
+                    drawY = (int) (brouillard.get(0) * COTE * 1.5);
+                    fogPoly = getPolygon(drawX, drawY, COTE);
                 } else {
-                    fogPoly = getPolygon(brouillard.get(1) * r.width + r.width / 2,
-                            (int) (brouillard.get(0) * COTE * 1.5 + 0.5), COTE);
+                    drawX = brouillard.get(1) * r.width + r.width / 2;
+                    drawY = (int) (brouillard.get(0) * COTE * 1.5 + 0.5);
+                    fogPoly = getPolygon(drawX, drawY, COTE);
                 }
-                g2d.fill(fogPoly);
+                if (brouillardImg != null) {
+                    g2d.setClip(fogPoly);
+                    g2d.drawImage(brouillardImg, drawX, drawY, r.width, r.height, null);
+                    g2d.setClip(null);
+                } else {
+                    g2d.setColor(new Color(80, 80, 80));
+                    g2d.fill(fogPoly);
+                }
             }
-            
             // Restore the original composite
             g2d.setComposite(oldComposite);
         }
