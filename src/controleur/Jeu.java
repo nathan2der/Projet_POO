@@ -27,7 +27,7 @@ import modele.Humain;
 
 /**
  * Jeu est la classe représentant le contrôleur de la partie.
- * @author Solenn
+ * 
  *
  */
 public final class Jeu {

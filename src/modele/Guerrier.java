@@ -12,7 +12,7 @@ import controleur.Jeu;
  * <li>Vision : 2</li>
  * <li>Portée : 1</li>
  * </ul>
- * @author Solenn
+ * 
  * @see Unite
  *
  */
