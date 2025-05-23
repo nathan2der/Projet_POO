@@ -9,7 +9,7 @@ import vue.Menu;
 
 /**
  * Classe qui lance le main du programme.
- * @author Solenn
+ * 
  *
  */
 public class MainOfGame {

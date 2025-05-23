@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 /**
  * MainJFrame est la fenêtre du jeu.
- * @author Stefano
+ * 
  *
  */
 public class MainJFrame {

@@ -8,7 +8,7 @@ import controleur.Jeu;
 
 /**
  * IA est la classe représentant un joueur Ordinateur.
- * @author Solenn
+ * 
  * @see Joueur
  */
 public class IA extends Joueur {

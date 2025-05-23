@@ -8,7 +8,7 @@ import controleur.Jeu;
  * <li>Points de déplacement : 2</li>
  * <li>Bonus de défense : 50 %</li>
  * </ul>
- * @author Solenn
+ * 
  * @see Hexagone
  *
  */

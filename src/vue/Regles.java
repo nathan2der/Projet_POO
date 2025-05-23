@@ -21,7 +21,7 @@ import javax.swing.SpringLayout;
 
 /**
  * Regles est une classe qui affiche les règles du jeu.
- * @author Solenn
+ * 
  *
  */
 public class Regles {

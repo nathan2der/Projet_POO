@@ -23,7 +23,7 @@ import javax.swing.JPanel;
 /**
  * Affplateau est la classe fille de JPanel, elle affiche le plateau de jeu et
  * son contenu.
- * @author Stefano
+ * 
  *
  */
 public class Affplateau extends JPanel {

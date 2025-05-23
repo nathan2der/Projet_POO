@@ -8,7 +8,7 @@ import java.util.Map;
  * Classe héritant de HashMap , ajoute en fonctionnalité
  * la possibilité de retourner le premier élément de la
  * HashMap et de connaitre sa taille.
- * @author Loriot Benjamin
+ * 
  *
  * @param <K> Clef de la HashMap.
  * @param <V> Valeur de la HashMap.

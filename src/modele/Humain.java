@@ -5,7 +5,7 @@ import java.awt.Point;
 
 /**
  * Humain est la classe représentant un joueur humain.
- * @author Solenn
+ * 
  * @see Joueur
  */
 public class Humain extends Joueur {

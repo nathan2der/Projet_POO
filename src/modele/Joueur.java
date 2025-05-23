@@ -11,7 +11,7 @@ import java.util.Iterator;
  * <li>Son pseudo</li>
  * <li>Ses unités présentes sur le plateau</li>
  * </ul>
- * @author Solenn
+ * 
  *
  */
 public class Joueur {

@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 
 /**
  * PaintImage est une classe qui peint une image de l'unité sélectionnée.
- * @author Stefano
+ * 
  *
  */
 public class PaintImage extends JPanel {

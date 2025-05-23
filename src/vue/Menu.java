@@ -28,7 +28,7 @@ import controleur.Jeu;
  * Menu est une classe sur laquelle on choisit les paramètres de jeu (JvJ, JvIA,
  * Règles, Charger une partie).
  * 
- * @author Stefano
+ * 
  *
  */
 public class Menu {
