@@ -15,10 +15,7 @@ import javax.swing.JPanel;
  *
  */
 public class PaintImage extends JPanel {
-    /**
-     * Numéro de serial Version.
-     */
-    private static final long serialVersionUID = -395107005457886722L;
+    
     /**
      * Image que l'on veut peindre.
      */

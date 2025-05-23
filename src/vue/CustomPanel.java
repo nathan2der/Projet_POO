@@ -13,9 +13,7 @@ import javax.swing.JPanel;
  */
 public class CustomPanel extends JPanel {
     /**
-     * serialversionUID.
-     */
-    private static final long serialVersionUID = -4608335470555981006L;
+     
     /**
      * Image de fond du Menu.
      */

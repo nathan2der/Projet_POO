@@ -28,10 +28,6 @@ import javax.swing.JPanel;
  */
 public class Affplateau extends JPanel {
     /**
-     * Numéro de serial Version.
-     */
-    private static final long serialVersionUID = -2264167392249814615L;
-    /**
      * Taille du côté d'un hexagone.
      */
     static final int COTE = 30;

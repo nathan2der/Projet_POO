@@ -31,7 +31,7 @@ mvn -version
 1. Cloner le dépôt
    ```bash
    git clone [URL_DU_REPO]
-   cd wargame
+   
    ```
 
 2. Compiler le projet
